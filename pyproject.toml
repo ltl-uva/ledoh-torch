@@ -1,0 +1,25 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "ledoh-torch"
+version = "0.0.1"
+authors = [
+  { name="E. Tokarchuk, V.Niculae", email="evgeniya@tokarch.uk" },
+]
+description = "pytorch-based optimization functions for learning embedding dispersion on hyperspheres"
+readme = "README.md"
+requires-python = ">=3.8"
+dependencies = [
+  "torch"
+]
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+]
+
+[project.urls]
+Homepage = "https://github.com/"
+Issues = "https://github.com/"
