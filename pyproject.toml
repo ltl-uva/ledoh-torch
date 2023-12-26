@@ -3,16 +3,16 @@ requires = ["setuptools", "setuptools-scm"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "ledoh_torch"
+name = "ledoh-torch"
 version = "0.0.1"
 authors = [
   { name="E. Tokarchuk, V.Niculae", email="evgeniya@tokarch.uk" },
 ]
 description = "pytorch-based optimization functions for learning embedding dispersion on hyperspheres"
 readme = "README.md"
-requires-python = ">=3.8"
+requires-python = ">=3.11"
 dependencies = [
-  "torch>=1.13"
+  "torch>=2.0"
 ]
 classifiers = [
     "Programming Language :: Python :: 3",
