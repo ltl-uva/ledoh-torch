@@ -2,9 +2,12 @@ import math
 import torch
 from torch import Tensor
 
-def forward_sliced_dispersion(X: Tensor, p: Tensor, q: Tensor) -> Tensor:
+def forward_sliced_dispersion(X: Tensor,
+                              p: Tensor, q: Tensor,
+                              return_hidden_states: bool=False) -> Tensor:
     """
     calculates forward pass for sliced dispersion
+    :param return_hidden_states: return values to calculate grad
     :param X: Tensor of shape (N, d)
     :param p, q: vectors defining great circle. p is orthogonal to q
 
@@ -31,7 +34,15 @@ def forward_sliced_dispersion(X: Tensor, p: Tensor, q: Tensor) -> Tensor:
     phis = phis[invix]
     thetas_star = torch.mean(thetas)+phis
 
-    return 0.5*torch.mean(torch.pow(thetas-thetas_star, 2))
+    dist = 0.5*torch.mean(torch.pow(thetas-thetas_star, 2))
+    hidden_states = None
+
+    if return_hidden_states:
+        hidden_states = {"xp":Xp,
+                         "xq":Xq,
+                         "theta_diff":thetas-thetas_star}
+
+    return dist, hidden_states
 
 
 def sliced_dispersion_gradient(Xp: Tensor,
