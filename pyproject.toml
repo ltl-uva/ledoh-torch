@@ -1,9 +1,9 @@
 [build-system]
-requires = ["setuptools>=61.0"]
+requires = ["setuptools", "setuptools-scm"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "ledoh-torch"
+name = "ledoh_torch"
 version = "0.0.1"
 authors = [
   { name="E. Tokarchuk, V.Niculae", email="evgeniya@tokarch.uk" },
@@ -12,7 +12,7 @@ description = "pytorch-based optimization functions for learning embedding dispe
 readme = "README.md"
 requires-python = ">=3.8"
 dependencies = [
-  "torch"
+  "torch>=1.13"
 ]
 classifiers = [
     "Programming Language :: Python :: 3",
