@@ -7,7 +7,7 @@ from ledoh_torch import SphereDispersion
 
 class KernelSphereDispersion(SphereDispersion):
     @staticmethod
-    def forward(X: Tensor, gamma: float=0.001, batch_size: int =-1)->Tuple[Tensor, Dict[str, Any]]:
+    def forward(X: Tensor, reduction="mean", gamma: float=0.001, batch_size: int =-1)->Tuple[Tensor, Dict[str, Any]]:
         """Compute the dispersion of a set of points on the sphere using kernel function.
         :param X: points on the sphere
         :param gamma: scaling factor
@@ -23,4 +23,9 @@ class KernelSphereDispersion(SphereDispersion):
         similarities = X_batch @ X_batch.T
         similarities.fill_diagonal_(0)
 
-        return torch.exp(gamma * similarities).sum(), {"sample_size": batch_size}
+        loss = torch.exp(gamma * similarities).sum()
+        if reduction == "mean":
+            loss = torch.div(loss, batch_size)
+            return loss, {"sample_size": 1}
+        else:
+            return loss, {"sample_size": batch_size}

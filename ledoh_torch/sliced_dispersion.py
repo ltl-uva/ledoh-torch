@@ -10,6 +10,7 @@ from ledoh_torch.sphere_dispersion import SphereDispersion
 class SlicedSphereDispersion(SphereDispersion):
     @staticmethod
     def forward(X:Tensor,
+                reduction: str = "mean",
                 p:Tensor=None, q:Tensor=None,
                 return_hidden_states: bool = False) -> Tuple[Tensor, Dict[str, Any]]:
         """
@@ -40,13 +41,17 @@ class SlicedSphereDispersion(SphereDispersion):
         phis = phis[invix]
         thetas_star = torch.mean(thetas) + phis
 
-        dist = 0.5 * torch.mean(torch.pow(thetas - thetas_star, 2))
+        dist = 0.5 * torch.sum(torch.pow(thetas - thetas_star, 2))
         extra = {"sample_size": N}
 
+        if reduction == "mean":
+            dist = torch.div(dist, N)
+            extra = {"sample_size": 1}
+
         if return_hidden_states:
-            extra = {"xp": Xp,
+            extra.update({"xp": Xp,
                              "xq": Xq,
-                             "theta_diff": thetas - thetas_star}
+                             "theta_diff": thetas - thetas_star})
 
         return dist, extra
 
