@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "ledoh-torch"
-version = "0.0.1"
+version = "0.0.2"
 authors = [
   { name="E. Tokarchuk, V.Niculae", email="evgeniya@tokarch.uk" },
 ]
