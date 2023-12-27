@@ -3,7 +3,7 @@ from typing import Tuple, Dict, Any
 import torch
 from torch import Tensor
 
-from ledoh_torch import SphereDispersion
+from .sphere_dispersion import SphereDispersion
 
 class KernelSphereDispersion(SphereDispersion):
     @staticmethod

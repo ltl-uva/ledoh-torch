@@ -4,7 +4,7 @@ from typing import Tuple, Dict, Any
 import torch
 from torch import Tensor
 
-from ledoh_torch.sphere_dispersion import SphereDispersion
+from .sphere_dispersion import SphereDispersion
 
 
 class SlicedSphereDispersion(SphereDispersion):
