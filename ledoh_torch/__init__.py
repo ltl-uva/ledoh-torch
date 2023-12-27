@@ -1,8 +1,8 @@
-from .lloyd_dispersion import LloydSphereDispersion
+from ledoh_torch.lloyd_dispersion import LloydSphereDispersion
 from ledoh_torch.kernel_dispersion import KernelSphereDispersion
-from .sliced_dispersion import SlicedSphereDispersion
-from .sphere_dispersion import SphereDispersion
-from .utils import init_great_circle, minimum_cosine_distance, circular_variance
+from ledoh_torch.sliced_dispersion import SlicedSphereDispersion
+from ledoh_torch.sphere_dispersion import SphereDispersion
+from ledoh_torch.utils import init_great_circle, minimum_cosine_distance, circular_variance
 
 __all__ = [
     "LloydSphereDispersion",
