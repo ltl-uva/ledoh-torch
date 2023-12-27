@@ -3,6 +3,7 @@ from ledoh_torch.kernel_dispersion import KernelSphereDispersion
 from ledoh_torch.sliced_dispersion import SlicedSphereDispersion
 from ledoh_torch.sphere_dispersion import SphereDispersion
 from ledoh_torch.utils import init_great_circle, minimum_cosine_distance, circular_variance
+from ledoh_torch.sliced_sphere_func import compute_sliced_sphere_dispersion
 
 __all__ = [
     "LloydSphereDispersion",
@@ -12,4 +13,5 @@ __all__ = [
     "init_great_circle",
     "minimum_cosine_distance",
     "circular_variance",
+    "compute_sliced_sphere_dispersion"
 ]

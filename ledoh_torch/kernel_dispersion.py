@@ -5,9 +5,13 @@ from torch import Tensor
 
 from .sphere_dispersion import SphereDispersion
 
+
 class KernelSphereDispersion(SphereDispersion):
     @staticmethod
-    def forward(X: Tensor, reduction="mean", gamma: float=0.001, batch_size: int =-1)->Tuple[Tensor, Dict[str, Any]]:
+    def forward(X: Tensor,
+                reduction="mean",
+                gamma: float = 0.001,
+                batch_size: int = -1) -> Tuple[Tensor, Dict[str, Any]]:
         """Compute the dispersion of a set of points on the sphere using kernel function.
         :param X: points on the sphere
         :param gamma: scaling factor

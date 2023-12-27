@@ -9,18 +9,21 @@ from .sphere_dispersion import SphereDispersion
 
 class SlicedSphereDispersion(SphereDispersion):
     @staticmethod
-    def forward(X:Tensor,
+    def forward(X: Tensor,
+                p: Tensor,
+                q: Tensor,
                 reduction: str = "mean",
-                p:Tensor=None, q:Tensor=None,
                 return_hidden_states: bool = False) -> Tuple[Tensor, Dict[str, Any]]:
         """
         calculates forward pass for sliced dispersion
+        :param reduction:
         :param return_hidden_states: return values to calculate grad
         :param X: Tensor of shape (N, d)
         :param p, q: vectors defining great circle. p is orthogonal to q
 
         :return: squared distance between projected and dispered angles
         """
+
         N = X.size(0)
         device = X.device
 
@@ -50,8 +53,8 @@ class SlicedSphereDispersion(SphereDispersion):
 
         if return_hidden_states:
             extra.update({"xp": Xp,
-                             "xq": Xq,
-                             "theta_diff": thetas - thetas_star})
+                          "xq": Xq,
+                          "theta_diff": thetas - thetas_star})
 
         return dist, extra
 

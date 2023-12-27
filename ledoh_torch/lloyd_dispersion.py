@@ -11,6 +11,7 @@ class LloydSphereDispersion(SphereDispersion):
     @staticmethod
     def forward(X, reduction='mean', n_samples=100) -> Tuple[Tensor, Dict[str, Any]]:
         """Compute the dispersion of a set of points on the sphere using Lloyd's algorithm.
+        :param reduction:
         :param X: points on the sphere
         :param n_samples:
         :return: mean min squared distance between samples and nearest points on the sphere, {"sample_size": 1}
