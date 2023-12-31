@@ -12,7 +12,7 @@ class SlicedSphereDispersion(SphereDispersion):
     def forward(X: Tensor,
                 p: Tensor,
                 q: Tensor,
-                reduction: str = "mean",
+                reduction: str = "sum",
                 return_hidden_states: bool = False) -> Tuple[Tensor, Dict[str, Any]]:
         """
         calculates forward pass for sliced dispersion

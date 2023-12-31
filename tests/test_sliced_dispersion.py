@@ -69,7 +69,7 @@ def project_and_plot(X, p, q):
     ax.scatter(x, y, color='b', alpha=0.5)
     plt.show()
 
-def test_and_plot():
+def test_and_plot_with_same_great_circle():
     d = 3
     p, q = init_great_circle(d)
 
@@ -104,4 +104,4 @@ def test_and_plot():
     project_and_plot(X.detach(), p, q)
 
 if __name__ == "__main__":
-    test_and_plot()
+    test_and_plot_with_same_great_circle()
