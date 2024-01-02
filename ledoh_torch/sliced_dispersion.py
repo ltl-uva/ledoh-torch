@@ -12,7 +12,6 @@ class SlicedSphereDispersion(SphereDispersion):
     def forward(X: Tensor,
                 p: Tensor,
                 q: Tensor,
-                reduction: str = "sum",
                 return_hidden_states: bool = False) -> Tuple[Tensor, Dict[str, Any]]:
         """
         calculates forward pass for sliced dispersion
@@ -45,16 +44,12 @@ class SlicedSphereDispersion(SphereDispersion):
         thetas_star = torch.mean(thetas) + phis
 
         dist = 0.5 * torch.sum(torch.pow(thetas - thetas_star, 2))
-        extra = {"sample_size": N}
 
-        if reduction == "mean":
-            dist = torch.div(dist, N)
-            extra = {"sample_size": 1}
-
+        extra = None
         if return_hidden_states:
-            extra.update({"xp": Xp,
-                          "xq": Xq,
-                          "theta_diff": thetas - thetas_star})
+            extra = {"xp": Xp,
+                     "xq": Xq,
+                     "theta_diff": thetas - thetas_star}
 
         return dist, extra
 

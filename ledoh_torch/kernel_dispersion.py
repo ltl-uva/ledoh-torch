@@ -9,7 +9,6 @@ from .sphere_dispersion import SphereDispersion
 class KernelSphereDispersion(SphereDispersion):
     @staticmethod
     def forward(X:Tensor,
-                reduction: str = "mean",
                 gamma: float = 0.001,
                 batch_size: int = -1) -> Tuple[Tensor, Dict[str, Any]]:
         """Compute the dispersion of a set of points on the sphere using kernel function.
@@ -25,11 +24,7 @@ class KernelSphereDispersion(SphereDispersion):
         X_batch = torch.index_select(X, 0, batch_idx)
 
         similarities = X_batch @ X_batch.T
-        similarities.fill_diagonal_(0)
+        similarities = torch.triu(similarities)
 
-        loss = torch.exp(gamma * similarities).sum()
-        if reduction == "mean":
-            loss = torch.div(loss, batch_size)
-            return loss, {"sample_size": 1}
-        else:
-            return loss, {"sample_size": batch_size}
+        loss = torch.exp(gamma * similarities).sum() * (2.0/(batch_size*(batch_size-1)))
+        return loss
