@@ -1,5 +1,3 @@
-from typing import Tuple, Dict, Any
-
 import torch
 from torch import Tensor
 
@@ -8,9 +6,9 @@ from .sphere_dispersion import SphereDispersion
 
 class KernelSphereDispersion(SphereDispersion):
     @staticmethod
-    def forward(X:Tensor,
+    def forward(X: Tensor,
                 gamma: float = 0.001,
-                batch_size: int = -1) -> Tuple[Tensor, Dict[str, Any]]:
+                batch_size: int = -1) -> Tensor:
         """Compute the dispersion of a set of points on the sphere using kernel function.
         :param X: points on the sphere
         :param gamma: scaling factor
@@ -26,5 +24,5 @@ class KernelSphereDispersion(SphereDispersion):
         similarities = X_batch @ X_batch.T
         similarities = torch.triu(similarities)
 
-        loss = torch.exp(gamma * similarities).sum() * (2.0/(batch_size*(batch_size-1)))
+        loss = torch.exp(gamma * similarities).sum() * (2.0 / (batch_size * (batch_size - 1)))
         return loss
