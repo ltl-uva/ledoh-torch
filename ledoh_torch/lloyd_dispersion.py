@@ -28,6 +28,6 @@ class LloydSphereDispersion(SphereDispersion):
         dist2 = torch.acos(samples @ X.T) ** 2
         # choose the closest center for each sample and sum results
         #since we compute mean directly, return sample_size=1
-        loss = (torch.min(dist2, dim=-1)[0]) / n_samples
+        loss = (torch.min(dist2, dim=-1)[0]).mean(dim=0)
 
         return loss
