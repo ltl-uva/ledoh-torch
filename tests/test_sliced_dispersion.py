@@ -1,5 +1,5 @@
 from ledoh_torch import init_great_circle, compute_sliced_sphere_dispersion
-from ledoh_torch import minimum_cosine_distance, circular_variance
+from ledoh_torch import minimum_acos_distance, circular_variance
 import torch
 import torch.nn.functional as F
 from geoopt.tensor import ManifoldParameter
@@ -26,7 +26,7 @@ def test_with_different_great_circle():
     X = ManifoldParameter(X, manifold=manifold)
     optimizer = RiemannianAdam([X], stabilize=1, lr=0.005)
     losses = []
-    min_dists = [minimum_cosine_distance(X).item()]
+    min_dists = [minimum_acos_distance(X).item()]
     circ_vars = [circular_variance(X).item()]
 
     for i in range(n_steps):
@@ -39,7 +39,7 @@ def test_with_different_great_circle():
         optimizer.step()
 
         circ_vars.append(circular_variance(X).item())
-        min_dists.append(minimum_cosine_distance(X).item())
+        min_dists.append(minimum_acos_distance(X).item())
 
     print("Dispersion: ", losses[0], losses[-1])
     print("Min dist: ", min_dists[0], min_dists[-1])
@@ -83,7 +83,7 @@ def test_and_plot_with_same_great_circle():
 
     optimizer = RiemannianAdam([X], stabilize=1, lr=0.005)
     losses = []
-    min_dists = [minimum_cosine_distance(X.detach()).item()]
+    min_dists = [minimum_acos_distance(X.detach()).item()]
     circ_vars = [circular_variance(X.detach()).item()]
 
     for i in range(n_steps):
@@ -95,7 +95,7 @@ def test_and_plot_with_same_great_circle():
         optimizer.step()
 
         circ_vars.append(circular_variance(X.detach()).item())
-        min_dists.append(minimum_cosine_distance(X.detach()).item())
+        min_dists.append(minimum_acos_distance(X.detach()).item())
 
     print("Dispersion: ", losses[0], losses[-1])
     print("Min dist: ", min_dists[0], min_dists[-1])

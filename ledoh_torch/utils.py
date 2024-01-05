@@ -1,6 +1,6 @@
 import torch
 
-def minimum_cosine_distance(X: torch.Tensor) -> torch.Tensor:
+def minimum_acos_distance(X: torch.Tensor) -> torch.Tensor:
     dp = torch.einsum('ij,kj->ik ', X, X)
     dist = torch.acos(dp)
     return torch.triu(dist).min()
