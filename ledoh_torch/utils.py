@@ -1,9 +1,9 @@
 import torch
 
 def minimum_cosine_distance(X: torch.Tensor) -> torch.Tensor:
-    dist = torch.acos(X @ X.T)
-    dist.fill_diagonal_(float('inf'))
-    return dist.view(-1).min()
+    dp = torch.einsum('ij,kj->ik ', X, X)
+    dist = torch.acos(dp)
+    return torch.triu(dist).min()
 
 
 def circular_variance(X: torch.Tensor) -> torch.Tensor:
