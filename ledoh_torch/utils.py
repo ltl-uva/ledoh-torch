@@ -2,7 +2,7 @@ import torch
 
 
 def minimum_acos_distance(X: torch.Tensor) -> torch.Tensor:
-    dist = torch.acos(X @ X.T)
+    dist = torch.acos((X @ X.T).clamp(-1+1e-4, 1-1e-4))
     dist.fill_diagonal_(float('inf'))
     return dist.view(-1).min()
 

@@ -21,7 +21,7 @@ class KernelSphereDispersion(SphereDispersion):
         batch_idx = torch.randperm(X.shape[0], device=X.device)[:batch_size]
         X_batch = torch.index_select(X, 0, batch_idx)
 
-        similarities =X_batch @ X_batch.T
+        similarities = X_batch @ X_batch.T
         similarities = torch.triu(similarities)
 
         loss = torch.exp(gamma * similarities).sum() * (2.0 / (batch_size * (batch_size - 1)))
