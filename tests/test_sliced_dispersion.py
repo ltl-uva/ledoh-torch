@@ -69,15 +69,12 @@ def project_and_plot(X, p, q):
     ax.scatter(x, y, color='b', alpha=0.5)
     plt.show()
 
-def test_and_plot_with_same_great_circle():
+def test_and_plot():
     d = 3
-    p, q = init_great_circle(d)
 
     X = F.normalize(torch.randn(100, d, requires_grad=True), dim=-1)
 
-    project_and_plot(X.detach(),p,q)
-
-    n_steps = 1000
+    n_steps = 100
     manifold = Sphere()
     X = ManifoldParameter(X, manifold=manifold)
 
@@ -87,8 +84,10 @@ def test_and_plot_with_same_great_circle():
     circ_vars = [circular_variance(X.detach()).item()]
 
     for i in range(n_steps):
+        p, q = init_great_circle(d)
+        project_and_plot(X.detach(), p, q)
         optimizer.zero_grad()
-        loss = compute_sliced_sphere_dispersion(X,p,q, "sum", True)
+        loss = compute_sliced_sphere_dispersion(X,p,q)
         losses.append(loss.detach().item())
 
         loss.backward()
@@ -101,7 +100,5 @@ def test_and_plot_with_same_great_circle():
     print("Min dist: ", min_dists[0], min_dists[-1])
     print("Circ var: ", circ_vars[0], circ_vars[-1])
 
-    project_and_plot(X.detach(), p, q)
-
 if __name__ == "__main__":
-    test_and_plot_with_same_great_circle()
+    test_and_plot()
