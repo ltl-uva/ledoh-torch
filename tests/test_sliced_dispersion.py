@@ -58,7 +58,7 @@ def points_on_circle(angle):
 
     return x,y
 
-def project_and_plot(X, p, q):
+def project_and_plot(X, p, q, color='b', alpha=0.5):
     fig, ax = plt.subplots()
     Xp = X @ p
     Xq = X @ q
@@ -66,7 +66,7 @@ def project_and_plot(X, p, q):
     thetas = torch.arctan2(Xq, Xp)
     x, y = points_on_circle(thetas)
 
-    ax.scatter(x, y, color='b', alpha=0.5)
+    ax.scatter(x, y, color=color, alpha=alpha)
     plt.show()
 
 def test_and_plot():
@@ -74,7 +74,7 @@ def test_and_plot():
 
     X = F.normalize(torch.randn(100, d, requires_grad=True), dim=-1)
 
-    n_steps = 100
+    n_steps = 10
     manifold = Sphere()
     X = ManifoldParameter(X, manifold=manifold)
 
@@ -93,6 +93,7 @@ def test_and_plot():
         loss.backward()
         optimizer.step()
 
+        project_and_plot(X.detach(), p, q, color='r', alpha=0.5)
         circ_vars.append(circular_variance(X.detach()).item())
         min_dists.append(minimum_acos_distance(X.detach()).item())
 
