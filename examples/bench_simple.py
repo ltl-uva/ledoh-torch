@@ -55,9 +55,12 @@ def bench(n, d):
     torch.manual_seed(42)
     X_init = F.normalize(10 + torch.randn(n, d), dim=-1)
 
-    def make_opt(X):
+    def make_opt_sgd(X):
+        # return RiemannianAdam([X], lr=0.05)
+        return RiemannianSGD([X], lr=0.1)
+
+    def make_opt_adam(X):
         return RiemannianAdam([X], lr=0.05)
-        # return RiemannianSGD([X], lr=0.1)
 
     mmd = partial(KernelSphereDispersion.forward, gamma=.1, batch_size=-1)
     mmdmb = partial(KernelSphereDispersion.forward, gamma=.1,
@@ -69,30 +72,33 @@ def bench(n, d):
 
     res = dict()
 
+    manifold = SphereExact()
+
     if n <= 100:
         res["mmd-full"] = _bench_one(X_init=X_init,
                                 func=mmd,
-                                make_opt=make_opt,
-                                manifold=Sphere())
+                                make_opt=make_opt_adam,
+                                manifold=manifold)
 
     res["mmd-mb"] = _bench_one(X_init=X_init,
                                func=mmdmb,
-                               make_opt=make_opt,
-                               manifold=Sphere())
+                               make_opt=make_opt_adam,
+                               manifold=manifold)
 
     res["lloyd"] = _bench_one(X_init=X_init,
                               func=lloyd,
-                              make_opt=make_opt,
-                              manifold=Sphere())
+                              make_opt=make_opt_adam,
+                              manifold=manifold)
 
     res["sliced"] = _bench_one(X_init=X_init,
                                func=sliced,
-                               make_opt=make_opt,
-                               manifold=Sphere())
+                               make_opt=make_opt_sgd,
+                               manifold=manifold)
+
     res["sliced-ax"] = _bench_one(X_init=X_init,
                                   func=axsliced,
-                                  make_opt=make_opt,
-                                  manifold=Sphere())
+                                  make_opt=make_opt_sgd,
+                                  manifold=manifold)
 
     return res
 

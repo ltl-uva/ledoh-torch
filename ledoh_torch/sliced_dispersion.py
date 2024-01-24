@@ -8,6 +8,22 @@ from .utils import init_great_circle
 from .sphere_dispersion import SphereDispersion
 
 
+def _dist_along_slice(Xp, Xq, N, device):
+    thetas = torch.arctan2(Xq, Xp)
+
+    ix = torch.argsort(thetas)
+    invix = torch.empty_like(ix)
+    invix[ix] = torch.arange(N, device=device)
+
+    phis = 2 * math.pi * torch.arange(1, N+1, device=device) / N
+    phis -= math.pi + math.pi / N  # make zero-mean
+    phis = phis[invix]
+
+    thetas_star = torch.mean(thetas) + phis
+
+    return .5 * torch.sum(torch.square(thetas - thetas_star))
+
+
 class SlicedSphereDispersion(SphereDispersion):
     @staticmethod
     def forward(X: Tensor,
@@ -26,7 +42,6 @@ class SlicedSphereDispersion(SphereDispersion):
 
         N, d = X.shape
 
-
         device = X.device
 
         if p is None or q is None:
@@ -35,18 +50,34 @@ class SlicedSphereDispersion(SphereDispersion):
         Xp = X @ p
         Xq = X @ q
 
-        thetas = torch.arctan2(Xq, Xp)
+        return _dist_along_slice(Xp, Xq, N, device)
 
-        ix = torch.argsort(thetas)
-        invix = torch.empty_like(ix)
-        invix[ix] = torch.arange(N, device=device)
 
-        phis = 2 * math.pi * torch.arange(1, N+1, device=device) / N
-        phis -= math.pi + math.pi / N  # make zero-mean
-        phis = phis[invix]
+class AxisAlignedSlicedSphereDispersion(SphereDispersion):
+    @staticmethod
+    def forward(X: Tensor,
+                i: Optional[int],
+                j: Optional[int],
+                ) -> Tensor:
+        """
+        calculates forward pass for sliced dispersion
+        :param reduction:
+        :param return_hidden_states: return values to calculate grad
+        :param X: Tensor of shape (N, d)
+        :param p, q: vectors defining great circle. p is orthogonal to q
 
-        thetas_star = torch.mean(thetas) + phis
+        :return: squared distance between projected and dispered angles
+        """
 
-        dist = .5 * torch.sum(torch.pow(thetas - thetas_star, 2))
+        N, d = X.shape
 
-        return dist
+
+        device = X.device
+
+        if i is None or j is None:
+            i, j = torch.randperm(d)[:2]
+
+        Xp = X[:, i]
+        Xq = X[:, j]
+
+        return _dist_along_slice(Xp, Xq, N, device)
