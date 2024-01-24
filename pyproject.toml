@@ -2,9 +2,12 @@
 requires = ["setuptools", "setuptools-scm"]
 build-backend = "setuptools.build_meta"
 
+[tool.setuptools]
+packages = ["ledoh_torch"]
+
 [project]
 name = "ledoh-torch"
-version = "0.0.3"
+version = "0.0.4"
 authors = [
   { name="E. Tokarchuk, V.Niculae", email="evgeniya@tokarch.uk" },
 ]
