@@ -8,7 +8,7 @@ from geoopt.manifolds import SphereExact
 
 import matplotlib.pyplot as plt
 
-from ledoh_torch import init_great_circle, compute_sliced_sphere_dispersion
+from ledoh_torch import init_great_circle, SlicedSphereDispersion
 
 
 def project_and_plot(X, p, q, ax, color='b', alpha=0.5):
@@ -48,10 +48,11 @@ def distance(X, p, q):
 def main():
     d = 10
 
+    torch.manual_seed(40)
+
     n_points = 5
     X_init = F.normalize(10 + torch.randn(n_points, d), dim=-1)
 
-    n_steps = 16
     manifold = SphereExact()
     p, q = init_great_circle(d)
 
@@ -76,6 +77,12 @@ def main():
     optimizer.zero_grad()
     loss, _ = distance(X, p, q)
     loss.backward()
+    grad = X.grad
+    print(grad)
+    # check this gradient is orthogonal to X itself.
+    # print((X * grad).sum(dim=-1))
+    # update X with riemannian gradient
+    X = manifold.expmap(X, -grad)
     optimizer.step()
     project_and_plot(X.detach(), p, q, axes[2])
 
@@ -83,14 +90,14 @@ def main():
     X = ManifoldParameter(X_init.clone(), manifold=manifold)
     optimizer = RiemannianSGD([X], stabilize=1, lr=1)
     optimizer.zero_grad()
-    loss = compute_sliced_sphere_dispersion(X,p,q)
+    loss = SlicedSphereDispersion.forward(X, p, q)
     loss.backward()
     optimizer.step()
     project_and_plot(X.detach(), p, q, axes[3])
     axes[0].set_title("before update")
     axes[1].set_title("thetas_star")
     axes[2].set_title("after update -- autograd")
-    axes[3].set_title("after update -- custom backward")
+    axes[3].set_title("after update -- new impl")
     plt.show()
 
 

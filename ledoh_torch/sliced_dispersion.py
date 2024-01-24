@@ -1,18 +1,19 @@
 import math
-from typing import Tuple, Dict, Any
+from typing import Optional
 
 import torch
 from torch import Tensor
 
+from .utils import init_great_circle
 from .sphere_dispersion import SphereDispersion
 
 
 class SlicedSphereDispersion(SphereDispersion):
     @staticmethod
     def forward(X: Tensor,
-                p: Tensor,
-                q: Tensor,
-                return_hidden_states: bool = False) -> Tuple[Tensor, Dict[str, Any]]:
+                p: Optional[Tensor],
+                q: Optional[Tensor],
+                ) -> Tensor:
         """
         calculates forward pass for sliced dispersion
         :param reduction:
@@ -23,8 +24,13 @@ class SlicedSphereDispersion(SphereDispersion):
         :return: squared distance between projected and dispered angles
         """
 
-        N = X.size(0)
+        N, d = X.shape
+
+
         device = X.device
+
+        if p is None or q is None:
+            p, q = init_great_circle(d, dtype=X.dtype, device=device)
 
         Xp = X @ p
         Xq = X @ q
@@ -35,41 +41,12 @@ class SlicedSphereDispersion(SphereDispersion):
         invix = torch.empty_like(ix)
         invix[ix] = torch.arange(N, device=device)
 
-        phis = -math.pi - math.pi / N + (2 * math.pi *
-                                         torch.arange(1, N + 1,
-                                                      device=device)
-                                         ) / N
-
+        phis = 2 * math.pi * torch.arange(1, N+1, device=device) / N
+        phis -= math.pi + math.pi / N  # make zero-mean
         phis = phis[invix]
+
         thetas_star = torch.mean(thetas) + phis
 
-        dist = 0.5 * torch.sum(torch.pow(thetas - thetas_star, 2))
+        dist = .5 * torch.sum(torch.pow(thetas - thetas_star, 2))
 
-        extra = None
-        if return_hidden_states:
-            extra = {"xp": Xp,
-                     "xq": Xq,
-                     "theta_diff": thetas - thetas_star}
-
-        return dist, extra
-
-    @staticmethod
-    def backward(Xp: Tensor,
-                 Xq: Tensor,
-                 p: Tensor, q: Tensor,
-                 theta_minus_thetastr: Tensor,
-                 grad_output: Tensor) -> Tensor:
-        """
-        :param Xp: X @ p
-        :param Xq: X @ q
-        :param p,q: vectors defining great circle. p is orthogonal to q
-        :param theta_minus_thetastr: define the subtraction between projected angles theta and optimal dispersed theta_star
-        :param grad_output: output of the forward function
-        :return: gradient of the sliced dispersion
-        """
-
-        grad = (
-                       (Xp * q.unsqueeze(-1) - Xq * p.unsqueeze(-1)) / (Xp ** 2 + Xq ** 2)
-               ) * theta_minus_thetastr
-
-        return grad_output * grad.T
+        return dist
