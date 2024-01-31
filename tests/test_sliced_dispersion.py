@@ -3,7 +3,7 @@ from ledoh_torch import minimum_acos_distance, circular_variance
 import torch
 import torch.nn.functional as F
 from geoopt.tensor import ManifoldParameter
-from geoopt.manifolds import Sphere
+from geoopt.manifolds import SphereExact
 from geoopt.optim import RiemannianAdam
 import matplotlib.pyplot as plt
 
@@ -36,10 +36,10 @@ def project_and_plot(X, p, q, ax, color='b', alpha=0.5):
 def test_and_plot():
     d = 3
 
-    X = F.normalize(torch.randn(100, d, requires_grad=True), dim=-1)
+    X = F.normalize(torch.randn(3, d, requires_grad=True), dim=-1)
 
-    n_steps = 16
-    manifold = Sphere()
+    n_steps = 1
+    manifold = SphereExact()
     X = ManifoldParameter(X, manifold=manifold)
 
     optimizer = RiemannianAdam([X], stabilize=1, lr=1)
@@ -65,6 +65,6 @@ def test_and_plot():
     print("Min dist: ", min_dists[0], min_dists[-1])
     print("Circ var: ", circ_vars[0], circ_vars[-1])
     plt.show()
-    
+
 if __name__ == "__main__":
     test_and_plot()
