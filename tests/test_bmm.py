@@ -22,7 +22,7 @@ def minimum_acos_distance_block(X: torch.Tensor, block_size:int = 16) -> torch.T
 
 if __name__=="__main__":
     X = F.normalize(torch.randn(50000, 128), dim=-1)
-    with profile(activities=[ProfilerActivity.CUDA], profile_memory=True,record_shapes=True) as prof:
+    with profile(activities=[ProfilerActivity.CPU], profile_memory=True,record_shapes=True) as prof:
         with record_function("acos_dist"):
             a = minimum_acos_distance(X)
         with record_function("acos_dist_block"):
