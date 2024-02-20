@@ -5,6 +5,10 @@ import torch
 def minimum_acos_distance(X: torch.Tensor, Y:torch.Tensor) -> torch.Tensor:
     return torch.acos((X @ Y.T).clamp(-1 + 1e-4, 1 - 1e-4)).fill_diagonal_(float('inf')).view(-1).min()
 
+@torch.jit.script
+def minimum_acos_distance_row(X: torch.Tensor, Y:torch.Tensor) -> torch.Tensor:
+    dists = torch.acos((X @ Y.T).clamp(-1 + 1e-4, 1 - 1e-4)).fill_diagonal_(float('inf'))
+    return dists.min(dim=-1).values
 
 def minimum_acos_distance_block(X: torch.Tensor, block_size:int = 1024) -> torch.Tensor:
     X_split = torch.split(X, block_size, dim=0)
