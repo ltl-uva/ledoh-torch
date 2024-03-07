@@ -5,7 +5,17 @@ import torch
 from torch import Tensor
 
 # from .utils import init_great_circle
-# from .sphere_dispersion import SphereDispersion
+from .sphere_dispersion import SphereDispersion
+
+
+class AxisAlignedSphereDispersion(SphereDispersion):
+    """Wrap sliced_batch to provide consistent API"""
+    @staticmethod
+    def forward(X: Tensor, batch_size=-1):
+        if batch_size < 0:
+            batch_size = X.shape[0]
+        
+        return sliced_batch(X, n_samples=batch_size)
 
 
 def sliced_batch(X, n_samples=5):
