@@ -14,12 +14,13 @@ class AxisAlignedSphereDispersion(SphereDispersion):
     def forward(X: Tensor, batch_size=-1):
         if batch_size < 0:
             batch_size = X.shape[0]
-        
+
         return sliced_batch(X, n_samples=batch_size)
 
 
 def sliced_batch(X, n_samples=5):
     n, d = X.shape
+    device = X.device
 
     # generate random axes quickly
     i = torch.randint(low=0, high=d, size=(n_samples,))
@@ -37,6 +38,7 @@ def sliced_batch(X, n_samples=5):
 
     phis = 2 * math.pi * torch.arange(1, n+1) / n
     phis -= math.pi + math.pi / n  # make zero-mean
+    phis = phis.to(device)
 
     # apply the inverse of each ix[:, k] permutation to the phis
     # https://discuss.pytorch.org/t/how-to-quickly-inverse-a-permutation-by-using-pytorch/116205/7
