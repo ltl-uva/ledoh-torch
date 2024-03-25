@@ -12,19 +12,19 @@ def run_dummy_training_loop(X, regularizer_function, reg_params=None, n_steps=10
     X = ManifoldParameter(X, manifold=manifold)
     optimizer = RiemannianAdam([X], stabilize=1, lr=lr)
     losses = []
-    min_dists = [minimum_acos_distance(X).item()]
+    min_dists = [minimum_acos_distance(X.detach(), X.detach()).item()]
     circ_vars = [circular_variance(X).item()]
 
     for i in range(n_steps):
         optimizer.zero_grad()
-        loss, _ = regularizer_function(X, *reg_params)
+        loss = regularizer_function(X, **reg_params)
         losses.append(loss.item())
 
         loss.backward()
         optimizer.step()
 
-        circ_vars.append(circular_variance(X).item())
-        min_dists.append(minimum_acos_distance(X).item())
+        circ_vars.append(circular_variance(X.detach()).item())
+        min_dists.append(minimum_acos_distance(X.detach(), X.detach()).item())
 
     print("Dispersion: ", losses[0], losses[-1])
     print("Min dist: ", min_dists[0], min_dists[-1])
