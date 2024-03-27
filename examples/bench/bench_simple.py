@@ -34,7 +34,7 @@ def _bench_one(X_init, func, make_opt, manifold, n_iter=3000):
         # log everything before update
         # losses.append(loss.item())
         cvars.append(circular_variance(X.detach()).item())
-        minds.append(minimum_acos_distance(X.detach()).item())
+        minds.append(minimum_acos_distance(X.detach(), X.detach()).item())
 
         # update
         tic = perf_counter()
@@ -46,7 +46,7 @@ def _bench_one(X_init, func, make_opt, manifold, n_iter=3000):
         time.append(time[-1] + toc - tic)
 
     cvars.append(circular_variance(X.detach()).item())
-    minds.append(minimum_acos_distance(X.detach()).item())
+    minds.append(minimum_acos_distance(X.detach(), X.detach()).item())
 
     return dict(losses=losses, cvars=cvars, minds=minds, time=time)
 
