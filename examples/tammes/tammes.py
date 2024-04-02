@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 
 from geoopt.tensor import ManifoldParameter
 from geoopt.manifolds import Sphere
-from geoopt.optim import RiemannianSGD, RiemannianAdam
+from geoopt.optim import RiemannianAdam
 
 from ledoh_torch import (
     SlicedSphereDispersion,
@@ -63,6 +63,17 @@ def plot_angles_(angles, ax, target=None, target_color=None, *args, **kwargs):
     ax.set_xticks([], [])
 
 
+def add_dispersed_points_to_ax(mmd_angles, lloyd_angles, sliced_angles, tammes_setup, ax):
+    # first idx of all angles are the same
+    ax.plot([mmd_angles[0].min()] * tammes_setup[0], linestyle="dotted", color="black", label="Min. angle non-dispersed points")
+    plot_angles_(mmd_angles[1], ax=ax, target=tammes_setup[-1], target_color="black", label="MMD", color="blue", marker="o")
+    plot_angles_(sliced_angles[1], ax=ax, label="Sliced", color="green", marker="s")
+    plot_angles_(lloyd_angles[1], ax=ax, label="Lloyd", color="red", marker="^")
+    ax.title.set_text(f"N = {tammes_setup[0]}")
+    ax.set_ylim([0, 90])
+    # ax.set_ylabel("Minimum angle")
+
+
 def main(out_file=None):
     epochs = 2500
 
@@ -98,7 +109,7 @@ def main(out_file=None):
         epochs=epochs,
         lr=0.005,
         loss_fn= LloydSphereDispersion,
-        loss_params=dict(n_samples=6000),
+        loss_params=dict(n_samples=200),
         verbose=True
     )
 
@@ -134,7 +145,7 @@ def main(out_file=None):
         epochs=epochs,
         lr=0.005,
         loss_fn= LloydSphereDispersion,
-        loss_params=dict(n_samples=8000),
+        loss_params=dict(n_samples=200),
         verbose=True
     )
 
@@ -170,7 +181,7 @@ def main(out_file=None):
         epochs=epochs,
         lr=0.005,
         loss_fn= LloydSphereDispersion,
-        loss_params=dict(n_samples=10000),
+        loss_params=dict(n_samples=300),
         verbose=True
     )
 
@@ -181,30 +192,39 @@ def main(out_file=None):
 
     fig, axes = plt.subplots(ncols=3, nrows=1, figsize=(21,5), sharey=True)
 
-    # n = 13
-    ax_idx = 0
-    plot_angles_(mmd_angles_n13[1], ax=axes[ax_idx], target=tammes_n13[-1], target_color="black", label="MMD", color="blue", marker="o")
-    plot_angles_(sliced_angles_n13[1], ax=axes[ax_idx], label="Sliced", color="green", marker="s")
-    plot_angles_(lloyd_angles_n13[1], ax=axes[ax_idx], label="Lloyd", color="red", marker="^")
-    axes[ax_idx].title.set_text(f"N = {tammes_n13[0]}")
-    axes[ax_idx].set_ylim([0, 90])
-    axes[ax_idx].set_ylabel("Minimum angle")
+    # plot
+    add_dispersed_points_to_ax(mmd_angles_n13, lloyd_angles_n13, sliced_angles_n13, tammes_n13, axes[0])
+    add_dispersed_points_to_ax(mmd_angles_n14, lloyd_angles_n14, sliced_angles_n14, tammes_n14, axes[1])
+    add_dispersed_points_to_ax(mmd_angles_n30, lloyd_angles_n30, sliced_angles_n30, tammes_n30, axes[2])
+    axes[0].set_ylabel("Minimum angle")
+    axes[2].legend()
+
+    # # n = 13
+    # ax_idx = 0
+    # plot_angles_(mmd_angles_n13[1], ax=axes[ax_idx], target=tammes_n13[-1], target_color="black", label="MMD", color="blue", marker="o")
+    # plot_angles_(sliced_angles_n13[1], ax=axes[ax_idx], label="Sliced", color="green", marker="s")
+    # plot_angles_(lloyd_angles_n13[1], ax=axes[ax_idx], label="Lloyd", color="red", marker="^")
+    # axes[ax_idx].plot([mmd_angles_n13[0].min()] * tammes_n13[0], linestyle="dotted", color="black", label="Min. angle non-dispersed points")
+    # axes[ax_idx].title.set_text(f"N = {tammes_n13[0]}")
+    # axes[ax_idx].set_ylim([0, 90])
+    # axes[ax_idx].set_ylabel("Minimum angle")
 
 
-    # n = 14
-    ax_idx = 1
-    plot_angles_(mmd_angles_n14[1], ax=axes[ax_idx], target=tammes_n14[-1], target_color="black", label="MMD", color="blue", marker="o")
-    plot_angles_(sliced_angles_n14[1], ax=axes[ax_idx], label="Sliced", color="green", marker="s")
-    plot_angles_(lloyd_angles_n14[1], ax=axes[ax_idx], label="Lloyd", color="red", marker="^")
-    axes[ax_idx].title.set_text(f"N = {tammes_n14[0]}")
+    # # n = 14
+    # ax_idx = 1
+    # plot_angles_(mmd_angles_n14[1], ax=axes[ax_idx], target=tammes_n14[-1], target_color="black", label="MMD", color="blue", marker="o")
+    # plot_angles_(sliced_angles_n14[1], ax=axes[ax_idx], label="Sliced", color="green", marker="s")
+    # plot_angles_(lloyd_angles_n14[1], ax=axes[ax_idx], label="Lloyd", color="red", marker="^")
+    # axes[ax_idx].plot([mmd_angles_n14[0].min()] * tammes_n[14], linestyle="dotted", color="black", label="Min. angle non-dispersed points")
+    # axes[ax_idx].title.set_text(f"N = {tammes_n14[0]}")
 
-    # n = 30
-    ax_idx = 2
-    plot_angles_(mmd_angles_n30[1], ax=axes[ax_idx], target=tammes_n30[-1], target_color="black", label="MMD", color="blue", marker="o")
-    plot_angles_(sliced_angles_n30[1], ax=axes[ax_idx], label="Sliced", color="green", marker="s")
-    plot_angles_(lloyd_angles_n30[1], ax=axes[ax_idx], label="Lloyd", color="red", marker="^")
-    axes[ax_idx].title.set_text(f"N = {tammes_n30[0]}")
-    axes[ax_idx].legend()
+    # # n = 30
+    # ax_idx = 2
+    # plot_angles_(mmd_angles_n30[1], ax=axes[ax_idx], target=tammes_n30[-1], target_color="black", label="MMD", color="blue", marker="o")
+    # plot_angles_(sliced_angles_n30[1], ax=axes[ax_idx], label="Sliced", color="green", marker="s")
+    # plot_angles_(lloyd_angles_n30[1], ax=axes[ax_idx], label="Lloyd", color="red", marker="^")
+    # axes[ax_idx].title.set_text(f"N = {tammes_n30[0]}")
+    # axes[ax_idx].legend()
 
 
     if out_file is not None:
