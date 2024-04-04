@@ -1,4 +1,4 @@
-from ledoh_torch.kernel_semibatched_dispersion import KernelSphereSemibatchDispersion
+from ledoh_torch import KernelSphereSemibatchDispersion
 from test_utils import run_dummy_training_loop
 import torch
 import torch.nn.functional as F
