@@ -8,7 +8,7 @@ from torch import Tensor
 from .sphere_dispersion import SphereDispersion
 
 
-class AxisAlignedSphereDispersion(SphereDispersion):
+class AxisAlignedBatchSphereDispersion(SphereDispersion):
     """Wrap sliced_batch to provide consistent API"""
     @staticmethod
     def forward(X: Tensor, batch_size=-1):
