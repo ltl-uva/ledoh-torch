@@ -1,0 +1,31 @@
+project_name: "toy_regularizer_playground"
+n: [20000]
+d: [128]
+lr: 0.001
+n_iter: 1000
+interval: 1
+init: [vmf150] # vmf<n> or gaussian. vmf<n> is a vMF distribution with mean direction vector e_1 and kappa=n. E.g. vmf150 has kappa=150
+models:
+  lloyd:
+    params:
+      n_samples: [500, 2000]
+    optim: adam # optim can be either (Riemannian) adam or sgd
+  sliced-ax: # this is sliced batched, I did not implement sliced axis aligned (no batch) due to the exploding gradient issue
+    params:
+      batch_size: [500, 2000]
+    optim: adam
+  #mmd-semi:
+  #  params:
+  #    gamma: [1]
+  #    batch_size: [1000, 6400]
+  #  optim: adam
+  #mma:
+  #  params:
+  #    batch_size: [4472, 11314]
+  #  optim: adam
+  mmd:
+    params:
+      gamma: [1]
+      batch_size: [1581, 3162] # [4472, 11314] #[7107]
+    optim: adam
+

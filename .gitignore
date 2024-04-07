@@ -3,4 +3,6 @@ build/
 dist/
 *.egg-info
 __pycache__
-examples/tammes/*.pdf
+*.pdf
+.ipynb_checkpoints
+examples/bench/toy/*/artifacts
