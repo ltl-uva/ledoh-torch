@@ -56,8 +56,8 @@ class SlicedSphereDispersion(SphereDispersion):
 class AxisAlignedSlicedSphereDispersion(SphereDispersion):
     @staticmethod
     def forward(X: Tensor,
-                i: Optional[int],
-                j: Optional[int],
+                i: Optional[int]=None,
+                j: Optional[int]=None,
                 ) -> Tensor:
         """
         calculates forward pass for sliced dispersion

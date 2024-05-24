@@ -6,6 +6,7 @@ from ledoh_torch.sliced_dispersion import AxisAlignedSlicedSphereDispersion
 from ledoh_torch.sliced_batch import AxisAlignedBatchSphereDispersion
 from ledoh_torch.mma_dispersion import MMADispersion
 from ledoh_torch.sphere_dispersion import SphereDispersion
+
 from ledoh_torch.utils import init_great_circle, \
     minimum_acos_distance, \
     circular_variance, \
