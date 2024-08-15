@@ -3,7 +3,7 @@ import torch
 
 @torch.jit.script
 def minimum_acos_distance(X: torch.Tensor, Y:torch.Tensor) -> torch.Tensor:
-    mask = (1-torch.eye(X.shape[0],Y.shape[1])).to(dtype=torch.bool, device=X.device)
+    mask = (1-torch.eye(X.shape[0],Y.shape[0])).to(dtype=torch.bool, device=X.device)
     return torch.acos((X @ Y.T)[mask].clamp(-1 + 1e-9, 1 - 1e-9)).min()
 
 @torch.jit.script
