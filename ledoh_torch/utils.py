@@ -1,17 +1,10 @@
 from typing import Tuple
 import torch
-@torch.jit.script
-def acos_distance_matrix(X: torch.Tensor, Y:torch.Tensor) -> torch.Tensor:
-    return torch.acos((X @ Y.T).clamp(-1 + 1e-9, 1 - 1e-9))
-@torch.jit.script
-def minimum_acos_distance(X: torch.Tensor, Y:torch.Tensor) -> torch.Tensor:
-    adist = acos_distance_matrix(X,Y)
-    return adist[adist>0].min()
 
 @torch.jit.script
-def minimum_acos_distance_row(X: torch.Tensor, Y:torch.Tensor) -> torch.Tensor:
-    dists = acos_distance_matrix(X,Y)
-    return dists.sort(dim=1).values[:,1]
+def minimum_acos_distance(X: torch.Tensor, Y:torch.Tensor) -> torch.Tensor:
+    mask = (1-torch.eye(X.shape[0],Y.shape[1], requires_grad=False).to(dtype=torch.bool, device=X.device))
+    return torch.acos((X @ Y.T)[mask].clamp(-1 + 1e-9, 1 - 1e-9)).min()
 
 @torch.jit.script
 def minimum_acos_distance_block(X: torch.Tensor, block_size:int = 1024) -> torch.Tensor:
