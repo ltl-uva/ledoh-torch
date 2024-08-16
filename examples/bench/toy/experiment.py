@@ -27,7 +27,7 @@ from ledoh_torch import (
     circular_variance
 )
 
-from bench_utils import WandbLogger, ExperimentConfig
+from bench_utils import ExperimentConfig, WandbLogger
 
 
 def _get_optimizer(optimizer: str, lr: float) -> Callable:
@@ -88,11 +88,11 @@ def _bench_one(
         toc = perf_counter()
         time.append(time[-1] + toc - tic)
 
-        losses.append(loss.detach().cpu().item())
-        cvars.append(circular_variance(X.detach().cpu()).item())
-        minds.append(minimum_acos_distance(X.detach().cpu()).item())
+        losses.append(loss.detach().item())
+        cvars.append(circular_variance(X.detach()).item())
+        minds.append(minimum_acos_distance(X.detach()).item())
 
-    return X.detach().cpu(), dict(losses=losses, cvars=cvars, minds=minds, time=time[1:])
+    return X.detach(), dict(losses=losses, cvars=cvars, minds=minds, time=time[1:])
 
 
 def main(config: ExperimentConfig):
