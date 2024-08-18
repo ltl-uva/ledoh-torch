@@ -28,7 +28,7 @@ class ExperimentConfig():
         self.n_iter = config["n_iter"]
         self.models = config["models"]
         self.interval = config["interval"]
-        self.init_embeddings = config["init"]
+        self.init_embeddings = dict(config["init"])
 
     def get_hyper_params(self):
         for n, d in product(self.n_values, self.dimensions):

@@ -114,46 +114,46 @@ def main(config: ExperimentConfig):
     #project_name = config.project_name
     #logger = WandbLogger(config)
 
-    for init_method in config.init_embeddings:
 
-        for lr, n, d, n_iter in config.get_hyper_params():
-            # create embeddings
-            X_init = _get_init_embeddings(n=n, d=d, init=init_method, device=device)
-            print(n,d, X_init.shape)
+    for lr, n, d, n_iter in config.get_hyper_params():
+        # create embeddings
+        init_method = config.init_embeddings
+        X_init = _get_init_embeddings(n=n, d=d, init=init_method, device=device)
+        print(n,d, X_init.shape)
 
-            for model_name, params, optim_type in config.get_model():
-                # logger.start_run(
-                #     project_name, model_name, init_method, (lr, n, d, n_iter), params, optim_type
-                # )
+        for model_name, params, optim_type in config.get_model():
+            # logger.start_run(
+            #     project_name, model_name, init_method, (lr, n, d, n_iter), params, optim_type
+            # )
 
-                # prepare model
-                if model_name == "mmd":
-                    loss_fn = partial(KernelSphereDispersion.forward, **params)
-                elif model_name == "sliced":
-                    loss_fn = partial(SlicedSphereDispersion.forward, p=None, q=None)
-                elif model_name == "sliced-ax":
-                    loss_fn = partial(AxisAlignedBatchSphereDispersion.forward, **params)
-                elif model_name == "lloyd":
-                    loss_fn = partial(LloydSphereDispersion.forward, **params)
-                elif model_name == "mma":
-                    loss_fn = partial(MMADispersion.forward, **params)
-                elif model_name == "mmd-semi":
-                    loss_fn = partial(KernelSphereSemibatchDispersion.forward, **params)
-                else:
-                    raise Exception("Incorrect model specified in configuration")
+            # prepare model
+            if model_name == "mmd":
+                loss_fn = partial(KernelSphereDispersion.forward, **params)
+            elif model_name == "sliced":
+                loss_fn = partial(SlicedSphereDispersion.forward, p=None, q=None)
+            elif model_name == "sliced-ax":
+                loss_fn = partial(AxisAlignedBatchSphereDispersion.forward, **params)
+            elif model_name == "lloyd":
+                loss_fn = partial(LloydSphereDispersion.forward, **params)
+            elif model_name == "mma":
+                loss_fn = partial(MMADispersion.forward, **params)
+            elif model_name == "mmd-semi":
+                loss_fn = partial(KernelSphereSemibatchDispersion.forward, **params)
+            else:
+                raise Exception("Incorrect model specified in configuration")
 
-                make_opt = _get_optimizer(optim_type, lr)
-                manifold = SphereExact()
+            make_opt = _get_optimizer(optim_type, lr)
+            manifold = SphereExact()
 
-                embeddings, results = _bench_one(X_init=X_init,
-                                  func=loss_fn,
-                                  make_opt=make_opt,
-                                  manifold=manifold,
-                                n_iter=n_iter, device=device)
+            embeddings, results = _bench_one(X_init=X_init,
+                              func=loss_fn,
+                              make_opt=make_opt,
+                              manifold=manifold,
+                            n_iter=n_iter, device=device)
 
 
-                #logger.log(embeddings, results, finish=True)
-                pd.DataFrame(results).to_csv(f"{model_name}_{init_method}_{lr}_{n}_{d}_{n_iter}_{optim_type}.csv")
+            #logger.log(embeddings, results, finish=True)
+            pd.DataFrame(results).to_csv(f"{model_name}_{init_method['_name']}_{lr}_{n}_{d}_{n_iter}_{optim_type}.csv")
 
 
 if __name__ == '__main__':
