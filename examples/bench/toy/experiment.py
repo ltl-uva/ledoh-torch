@@ -10,7 +10,7 @@ import torch.nn.functional as F
 
 import numpy as np
 
-from scipy.stats import vonmises_fisher
+from power_spherical.distributions import PowerSpherical
 
 from geoopt.tensor import ManifoldParameter
 from geoopt.optim import RiemannianSGD, RiemannianAdam
@@ -27,7 +27,9 @@ from ledoh_torch import (
     circular_variance
 )
 
-from bench_utils import ExperimentConfig, WandbLogger
+import pandas as pd
+
+from bench_utils import ExperimentConfig
 
 
 def _get_optimizer(optimizer: str, lr: float) -> Callable:
@@ -45,21 +47,30 @@ def _get_optimizer(optimizer: str, lr: float) -> Callable:
     raise ValueError("optimizer unknown")
 
 
-def _get_init_embeddings(n: int, d: int, init: str, device):
-    if init == "gaussian":
+def _get_init_embeddings(n: int, d: int, init: dict, device):
+    X_init = None
+
+    if init["_name"] == "gaussian":
         offset_init = 10
         torch.manual_seed(42)
         X_init = F.normalize(offset_init + torch.randn(n, d), dim=-1).to(device)
-        return X_init
 
-    elif "vmf" == init[:3]:
-        mu = np.zeros(d)
-        mu[0] = 1
-        kappa = int(init[3:])
-        X_init = F.normalize(torch.from_numpy(vonmises_fisher(mu, kappa).rvs(n, random_state=42)), dim=-1).to(device).to(torch.float32)
-        return X_init
+    # elif "vmf" == init[:3]:
+    #     mu = np.zeros(d)
+    #     mu[0] = 1
+    #     kappa = int(init[3:])
+    #     X_init = F.normalize(torch.from_numpy(vonmises_fisher(mu, kappa).rvs(n, random_state=42)), dim=-1).to(device).to(torch.float32)
+    #     return X_init
+    elif init["_name"]=="powerspherical":
+        kappa = torch.tensor(init["kappa"]*n, dtype=torch.float32, device=device)
+        loc = torch.randn(n,d, device=device)
+        X_init = PowerSpherical(loc, kappa).rsample()
 
-    return None
+    X_init_ = X_init.detach().clone()
+    init_min_dist = minimum_acos_distance(X_init_, X_init_)
+    circular_variance_init = circular_variance(X_init_)
+    print(f"init min dist {init_min_dist}, init cvar {circular_variance_init}")
+    return X_init
 
 
 def _bench_one(
@@ -92,14 +103,16 @@ def _bench_one(
         cvars.append(circular_variance(X.detach()).item())
         minds.append(minimum_acos_distance(X.detach()).item())
 
+        print(f"iter {it} loss {losses[-1]} cvar {cvars[-1]} mind {minds[-1]} time {time[-1]}")
+
     return X.detach(), dict(losses=losses, cvars=cvars, minds=minds, time=time[1:])
 
 
 def main(config: ExperimentConfig):
     # i didnt add the mps device btw
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    project_name = config.project_name
-    logger = WandbLogger(config)
+    #project_name = config.project_name
+    #logger = WandbLogger(config)
 
     for init_method in config.init_embeddings:
 
@@ -109,9 +122,9 @@ def main(config: ExperimentConfig):
             print(n,d, X_init.shape)
 
             for model_name, params, optim_type in config.get_model():
-                logger.start_run(
-                    project_name, model_name, init_method, (lr, n, d, n_iter), params, optim_type
-                )
+                # logger.start_run(
+                #     project_name, model_name, init_method, (lr, n, d, n_iter), params, optim_type
+                # )
 
                 # prepare model
                 if model_name == "mmd":
@@ -138,7 +151,9 @@ def main(config: ExperimentConfig):
                                   manifold=manifold,
                                 n_iter=n_iter, device=device)
 
-                logger.log(embeddings, results, finish=True)
+
+                #logger.log(embeddings, results, finish=True)
+                pd.DataFrame(results).to_csv(f"{model_name}_{init_method}_{lr}_{n}_{d}_{n_iter}_{optim_type}.csv")
 
 
 if __name__ == '__main__':
