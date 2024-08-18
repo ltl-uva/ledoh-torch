@@ -23,7 +23,7 @@ from ledoh_torch import (
     AxisAlignedBatchSphereDispersion,
     SlicedSphereDispersion,
     MMADispersion,
-    minimum_acos_distance_block as minimum_acos_distance,
+    minimum_acos_distance as minimum_acos_distance,
     circular_variance
 )
 
@@ -101,7 +101,7 @@ def _bench_one(
 
         losses.append(loss.detach().item())
         cvars.append(circular_variance(X.detach()).item())
-        minds.append(minimum_acos_distance(X.detach()).item())
+        minds.append(minimum_acos_distance(X.detach(),X.detach()).item())
 
         print(f"iter {it} loss {losses[-1]} cvar {cvars[-1]} mind {minds[-1]} time {time[-1]}")
 
