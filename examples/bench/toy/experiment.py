@@ -62,9 +62,11 @@ def _get_init_embeddings(n: int, d: int, init: dict, device):
     #     X_init = F.normalize(torch.from_numpy(vonmises_fisher(mu, kappa).rvs(n, random_state=42)), dim=-1).to(device).to(torch.float32)
     #     return X_init
     elif init["_name"]=="powerspherical":
-        kappa = torch.tensor(init["kappa"]*n, dtype=torch.float32, device=device)
-        loc = torch.randn(n,d, device=device)
-        X_init = PowerSpherical(loc, kappa).rsample()
+        kappa = init["kappa"]
+        ps_dist = PowerSpherical(
+            F.normalize(torch.full((n, d), d ** -0.5), dim=-1),
+            scale=torch.tensor(kappa).repeat(n))
+        X_init = ps_dist.rsample()
 
     X_init_ = X_init.detach().clone()
     init_min_dist = minimum_acos_distance(X_init_, X_init_)
