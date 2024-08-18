@@ -64,8 +64,8 @@ def _get_init_embeddings(n: int, d: int, init: dict, device):
     elif init["_name"]=="powerspherical":
         kappa = init["kappa"]
         ps_dist = PowerSpherical(
-            F.normalize(torch.full((n, d), d ** -0.5), dim=-1),
-            scale=torch.tensor(kappa).repeat(n))
+            F.normalize(torch.full((n, d), d ** -0.5, dtype=torch.float32,device=device), dim=-1),
+            scale=torch.tensor(kappa, dtype=torch.float32, device=device).repeat(n))
         X_init = ps_dist.rsample()
 
     X_init_ = X_init.detach().clone()
