@@ -70,7 +70,7 @@ def _get_init_embeddings(n: int, d: int, init: dict, device):
 
     elif init["_name"]=="powerspherical_decay":
         init_kappa_val = init["kappa"]
-        stop_decay = 10000
+        stop_decay = 1000
         kappa = torch.linspace(init_kappa_val, stop_decay, n, dtype=torch.float32, device=device)
         ps_dist = PowerSpherical(
             F.normalize(torch.full((n, d), d ** -0.5, dtype=torch.float32,device=device), dim=-1),
