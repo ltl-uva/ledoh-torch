@@ -5,7 +5,7 @@ from .sphere_dispersion import SphereDispersion
 
 
 class KernelSphereSemibatchDispersion(SphereDispersion):
-    def __init__(self, gamma:float=0.001, batch_size: int=-1):
+    def __init__(self, gamma:float=1.0, batch_size: int=-1):
         super().__init__()
         self.gamma = gamma
         self.batch_size = batch_size

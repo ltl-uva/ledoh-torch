@@ -5,7 +5,7 @@ from .sphere_dispersion import SphereDispersion
 
 
 class KernelSphereDispersion(SphereDispersion):
-    def __init__(self, gamma:float, batch_size: int):
+    def __init__(self, gamma: float = 1.0, batch_size: int = -1):
         """Dispersion of a set of points on the sphere using kernel function.
            :param gamma: scaling factor
            :param batch_size: reduce the memory usage by computing the dispersion on a batch of size batch_size
