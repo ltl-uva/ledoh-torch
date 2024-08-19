@@ -1,3 +1,4 @@
+import json
 from typing import Callable, Dict, List
 from time import perf_counter
 from functools import partial
@@ -136,7 +137,6 @@ def main(config: ExperimentConfig):
             # logger.start_run(
             #     project_name, model_name, init_method, (lr, n, d, n_iter), params, optim_type
             # )
-
             # prepare model
             if model_name == "mmd":
                 loss_fn = KernelSphereDispersion(**params)
@@ -164,7 +164,7 @@ def main(config: ExperimentConfig):
 
 
             #logger.log(embeddings, results, finish=True)
-            pd.DataFrame(results).to_csv(f"{model_name}_{init_method['_name']}_{lr}_{n}_{d}_{n_iter}_{optim_type}.csv")
+            pd.DataFrame(results).to_csv(f"{model_name}_{init_method['_name']}_{lr}_{n}_{d}_{n_iter}_{optim_type}_{json.dumps(params)}.csv")
 
 
 if __name__ == '__main__':
