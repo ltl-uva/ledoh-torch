@@ -61,11 +61,20 @@ def _get_init_embeddings(n: int, d: int, init: dict, device):
     #     kappa = int(init[3:])
     #     X_init = F.normalize(torch.from_numpy(vonmises_fisher(mu, kappa).rvs(n, random_state=42)), dim=-1).to(device).to(torch.float32)
     #     return X_init
-    elif init["_name"]=="powerspherical":
+    elif init["_name"]=="powerspherical_constant":
         kappa = init["kappa"]
         ps_dist = PowerSpherical(
             F.normalize(torch.full((n, d), d ** -0.5, dtype=torch.float32,device=device), dim=-1),
             scale=torch.tensor(kappa, dtype=torch.float32, device=device).repeat(n))
+        X_init = ps_dist.rsample()
+
+    elif init["_name"]=="powerspherical_decay":
+        init_kappa_val = init["kappa"]
+        stop_decay = 10.0
+        kappa = torch.linspace(stop_decay, init_kappa_val, n, dtype=torch.float32, device=device).flip(0)
+        ps_dist = PowerSpherical(
+            F.normalize(torch.full((n, d), d ** -0.5, dtype=torch.float32,device=device), dim=-1),
+            scale=kappa)
         X_init = ps_dist.rsample()
 
     X_init_ = X_init.detach().clone()
