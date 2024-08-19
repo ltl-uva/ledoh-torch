@@ -12,12 +12,13 @@ class KernelSphereDispersion(SphereDispersion):
            :return: loss value, {"sample_size": batch_size}
         """
         super().__init__()
-        self.gamma = gamma,
+        self.gamma = gamma
         self.batch_size = batch_size
 
     def forward(self, X: Tensor) -> Tensor:
 
         batch_size = X.shape[0] if self.batch_size < 0 else self.batch_size
+        print(batch_size)
 
         batch_idx = torch.randperm(X.shape[0], device=X.device)[:batch_size]
         X_batch = torch.index_select(X, 0, batch_idx)
