@@ -2,9 +2,9 @@ import torch
 from torch import Tensor
 
 
-class SphereDispersion:
-    @staticmethod
-    def forward(*args, **kwargs) -> Tensor:
+class SphereDispersion(torch.nn.Module):
+
+    def forward(self, *args, **kwargs) -> Tensor:
         """
         :param args: positional arguments
         :param kwargs: keyword arguments, must include reduction method; sum or mean

@@ -25,11 +25,8 @@ def _dist_along_slice(Xp, Xq, N, device):
 
 
 class SlicedSphereDispersion(SphereDispersion):
-    @staticmethod
-    def forward(X: Tensor,
-                p: Optional[Tensor],
-                q: Optional[Tensor],
-                ) -> Tensor:
+
+    def forward(self, X: Tensor) -> Tensor:
         """
         calculates forward pass for sliced dispersion
         :param reduction:
@@ -44,8 +41,7 @@ class SlicedSphereDispersion(SphereDispersion):
 
         device = X.device
 
-        if p is None or q is None:
-            p, q = init_great_circle(d, dtype=X.dtype, device=device)
+        p, q = init_great_circle(d, dtype=X.dtype, device=device)
 
         Xp = X @ p
         Xq = X @ q
@@ -54,11 +50,8 @@ class SlicedSphereDispersion(SphereDispersion):
 
 
 class AxisAlignedSlicedSphereDispersion(SphereDispersion):
-    @staticmethod
-    def forward(X: Tensor,
-                i: Optional[int]=None,
-                j: Optional[int]=None,
-                ) -> Tensor:
+
+    def forward(self, X: Tensor) -> Tensor:
         """
         calculates forward pass for sliced dispersion
         :param reduction:
@@ -74,8 +67,8 @@ class AxisAlignedSlicedSphereDispersion(SphereDispersion):
 
         device = X.device
 
-        if i is None or j is None:
-            i, j = torch.randperm(d)[:2]
+
+        i, j = torch.randperm(d)[:2]
 
         Xp = X[:, i]
         Xq = X[:, j]

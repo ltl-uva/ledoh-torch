@@ -10,11 +10,12 @@ from .sphere_dispersion import SphereDispersion
 
 class AxisAlignedBatchSphereDispersion(SphereDispersion):
     """Wrap sliced_batch to provide consistent API"""
-    @staticmethod
-    def forward(X: Tensor, batch_size=-1):
-        if batch_size < 0:
-            batch_size = X.shape[0]
+    def __init__(self, batch_size: int = -1):
+        super().__init__()
+        self.batch_size = batch_size
 
+    def forward(self, X:Tensor):
+        batch_size = X.shape[0] if self.batch_size < 0 else self.batch_size
         return sliced_batch(X, n_samples=batch_size)
 
 

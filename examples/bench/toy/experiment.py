@@ -70,8 +70,8 @@ def _get_init_embeddings(n: int, d: int, init: dict, device):
 
     elif init["_name"]=="powerspherical_decay":
         init_kappa_val = init["kappa"]
-        stop_decay = 10.0
-        kappa = torch.linspace(stop_decay, init_kappa_val, n, dtype=torch.float32, device=device).flip(0)
+        stop_decay = 10000
+        kappa = torch.linspace(init_kappa_val, stop_decay, n, dtype=torch.float32, device=device)
         ps_dist = PowerSpherical(
             F.normalize(torch.full((n, d), d ** -0.5, dtype=torch.float32,device=device), dim=-1),
             scale=kappa)
@@ -139,17 +139,17 @@ def main(config: ExperimentConfig):
 
             # prepare model
             if model_name == "mmd":
-                loss_fn = partial(KernelSphereDispersion.forward, **params)
+                loss_fn = KernelSphereDispersion(**params)
             elif model_name == "sliced":
-                loss_fn = partial(SlicedSphereDispersion.forward, p=None, q=None)
+                loss_fn = SlicedSphereDispersion()
             elif model_name == "sliced-ax":
-                loss_fn = partial(AxisAlignedBatchSphereDispersion.forward, **params)
+                loss_fn = AxisAlignedBatchSphereDispersion(**params)
             elif model_name == "lloyd":
-                loss_fn = partial(LloydSphereDispersion.forward, **params)
+                loss_fn = LloydSphereDispersion(**params)
             elif model_name == "mma":
-                loss_fn = partial(MMADispersion.forward, **params)
+                loss_fn = MMADispersion(**params)
             elif model_name == "mmd-semi":
-                loss_fn = partial(KernelSphereSemibatchDispersion.forward, **params)
+                loss_fn = KernelSphereSemibatchDispersion(**params)
             else:
                 raise Exception("Incorrect model specified in configuration")
 
