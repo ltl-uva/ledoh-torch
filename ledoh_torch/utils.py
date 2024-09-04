@@ -15,7 +15,7 @@ def avg_acos_distance(X: torch.Tensor, Y:torch.Tensor) -> torch.Tensor:
     return get_acos_distance_matrix(X,Y).mean()
 
 @torch.jit.script
-def avg_acos_distance_batch(X: torch.Tensor, batch_size=1024) -> torch.Tensor:
+def avg_acos_distance_batch(X: torch.Tensor, batch_size: int=1024) -> torch.Tensor:
     X_split = torch.split(X, batch_size, dim=0)
     avgs = []
     for A in X_split:
