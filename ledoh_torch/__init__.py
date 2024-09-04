@@ -11,7 +11,8 @@ from ledoh_torch.utils import init_great_circle, \
     minimum_acos_distance, \
     circular_variance, \
     minimum_acos_distance_block, \
-    minimum_acos_distance_row
+    minimum_acos_distance_row, \
+    avg_acos_distance
 __all__ = [
     "LloydSphereDispersion",
     "KernelSphereDispersion",
@@ -23,6 +24,7 @@ __all__ = [
     "MMADispersion",
     "init_great_circle",
     "minimum_acos_distance",
+    "avg_acos_distance",
     "minimum_acos_distance_block",
     "circular_variance",
     "minimum_acos_distance_row"
