@@ -13,7 +13,7 @@ from ledoh_torch.utils import init_great_circle, \
     minimum_acos_distance_batch, \
     minimum_acos_distance_row, \
     avg_acos_distance, \
-    avg_acos_distance_batch
+    avg_acos_distance_batch, median_acos_distance, median_acos_distance_batch
 
 __all__ = [
     "LloydSphereDispersion",
@@ -30,5 +30,7 @@ __all__ = [
     "minimum_acos_distance_batch",
     "circular_variance",
     "minimum_acos_distance_row",
-    "avg_acos_distance_batch"
+    "avg_acos_distance_batch",
+    "median_acos_distance",
+    "median_acos_distance_batch",
 ]
