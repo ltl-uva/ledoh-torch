@@ -136,9 +136,9 @@ def main(config: ExperimentConfig):
         print(n,d, X_init.shape)
 
         for model_name, params, optim_type in config.get_model():
-            # logger.start_run(
-            #     project_name, model_name, init_method, (lr, n, d, n_iter), params, optim_type
-            # )
+            logger.start_run(
+                project_name, model_name, init_method, (lr, n, d, n_iter), params, optim_type
+            )
             # prepare model
             if model_name == "mmd":
                 loss_fn = KernelSphereDispersion(**params)
@@ -169,7 +169,7 @@ def main(config: ExperimentConfig):
                             n_iter=n_iter, device=device)
 
 
-            #logger.log(embeddings, results, finish=True)
+            logger.log(embeddings, results, finish=True)
             param_str = json.dumps(params).replace(":", "_").replace(",", "_").replace("{", "").replace("}", "").replace(" ", "")
             pd.DataFrame(results).to_csv(f"{model_name}_{init_method['_name']}_{lr}_{n}_{d}_{n_iter}_{optim_type}_params_{param_str}.csv")
 
