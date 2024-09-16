@@ -31,7 +31,7 @@ class KernelSphereDispersion(PairwiseDispersion):
 
     def forward(self, X:Tensor) -> Tensor:
         similarities = get_batched_dot_product(X, self.batch_size)
-        similarities = similarities-torch.triu(similarities)
+        similarities = similarities-torch.tril(similarities)
         cnt = 2.0 / (self.batch_size * (self.batch_size - 1))
         loss = torch.exp(self.gamma * similarities).sum() * cnt
         return loss
@@ -61,15 +61,17 @@ class MHEDispersion(PairwiseDispersion):
     def forward(self, X: Tensor) -> Tensor:
         similarities = get_batched_dot_product(X, self.batch_size)
         angles = torch.arccos(similarities.clamp(-1 + self.eps, 1 - self.eps))
-        angles = angles-torch.triu(angles)
-        cnt = 2.0 / (self.batch_size * (self.batch_size - 1))
+
         loss = 0
         if self.s_power == 0:
-            loss = -torch.log(angles).sum() * cnt
+            loss = -torch.log(angles)
 
         if self.s_power>0:
-            loss = (torch.pow(angles, torch.ones_like(angles)*-self.s_power)).sum() * cnt
+            loss = (torch.pow(angles, torch.ones_like(angles)*-self.s_power))
 
+        loss = loss - torch.tril(loss)
+        cnt = 2.0 / (self.batch_size * (self.batch_size - 1))
+        loss = loss.sum() * cnt
         return loss
 
 
