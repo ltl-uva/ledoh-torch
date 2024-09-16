@@ -77,7 +77,7 @@ class KoLeoDispersion(PairwiseDispersion):
     def forward(self, X: Tensor) -> Tensor:
         pdist = F.pairwise_distance(X, X, p=2.0, eps=self.eps, keepdim=True)
         pdist = pdist.fill_diagonal_(torch.inf)
-        loss = torch.log(pdist.min(dim=1))
+        loss = torch.log(pdist.min(dim=1).values)
         return loss.mean()
 
 
