@@ -108,7 +108,7 @@ class WandbLogger():
 
     def get_current_run(self):
         return self.current_run
-    
+
     def log(self, embeddings, results: Dict[str, Any], finish: bool = False) -> None:
         """ Log data to wandb """
         wandb.log(results)
