@@ -2,13 +2,13 @@
 This file contains 1) a wrapper to iterate over hyperparam combinations and 2) a wandb logger
 """
 
-from typing import Any, Dict, Tuple
 from itertools import product
-
-from ledoh_torch import minimum_acos_distance_row
+from typing import Any, Dict, Tuple
 
 import wandb
 import yaml
+
+from ledoh_torch import minimum_acos_distance_row
 
 
 class ExperimentConfig():
@@ -17,6 +17,7 @@ class ExperimentConfig():
     through all hyperparam combinations for training and
     uploading plots to wandb
     """
+
     def __init__(self, path: str) -> None:
         with open(path, 'r') as file:
             config = yaml.safe_load(file)
@@ -68,6 +69,7 @@ class ExperimentConfig():
 
 class WandbLogger():
     """ Tracks training and logs data to wandb """
+
     def __init__(self, config: ExperimentConfig) -> None:
         self.current_run = None
         self.config = config
@@ -80,18 +82,18 @@ class WandbLogger():
                   hyperparams: Tuple[float, int, int, int],
                   params: Dict[str, Any],
                   optim_type: str
-        ) -> None:
+                  ) -> None:
         self.model_name = model_name
         lr, n, d, n_iter = hyperparams
         run_config = {
-                "regularizer": model_name,
-                "learning_rate": lr,
-                "epochs": n_iter,
-                "d": d,
-                "params": params,
-                "n": n,
-                "optim": optim_type,
-                "init": init_mode
+            "regularizer": model_name,
+            "learning_rate": lr,
+            "epochs": n_iter,
+            "d": d,
+            "params": params,
+            "n": n,
+            "optim": optim_type,
+            "init": init_mode
         }
 
         if "batch_size" in params:
@@ -101,10 +103,12 @@ class WandbLogger():
         run_name += ", ".join([f"{param}={value}" for param, value in params.items()])
         run_name += f" n={n}, d={d} optim={optim_type}"
         run_name += f" init={init_mode}"
-        wandb.init(project=project_name, name=run_name, config=run_config)
 
-        self.current_run = run_config
+        self.current_run = wandb.init(project=project_name, name=run_name, config=run_config)
 
+    def get_current_run(self):
+        return self.current_run
+    
     def log(self, embeddings, results: Dict[str, Any], finish: bool = False) -> None:
         """ Log data to wandb """
         wandb.log(results)
@@ -120,6 +124,7 @@ class WandbLogger():
 
     def _create_data_tables(self, results: Dict[str, Any]) -> Dict[str, Dict[str, Any]]:
         """ Create tables for spherical variance, mind dist and loss """
+
         def create_table(values, columns) -> wandb.Table:
             data = [[i, val] for i, val in enumerate(values) if i % interval == 0]
             return wandb.Table(data=data, columns=columns)
@@ -134,7 +139,7 @@ class WandbLogger():
     def _create_plots(
             self, model_name: str, tables: Dict[str, Dict[str, Any]],
             n: int, d: int, params_values: Dict[str, Any]
-        ) -> Dict[str, wandb.plot.line]:
+    ) -> Dict[str, wandb.plot.line]:
         data = dict()
 
         def add_plots(section, variables, param_values, fix_all=False):
@@ -180,7 +185,6 @@ class WandbLogger():
         add_plots(model_name, variables, param_values_adj)
 
         return data
-
 
     def _create_wandb_plots(self, results: Dict[str, Any]) -> None:
         model_name = self.current_run["regularizer"]

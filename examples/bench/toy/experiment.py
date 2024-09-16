@@ -1,22 +1,18 @@
-import json
-from typing import Callable, Dict, List
-from time import perf_counter
-from functools import partial
 import argparse
+import json
+from time import perf_counter
+from typing import Callable, Dict, List
 
-from tqdm import tqdm
-
+import pandas as pd
 import torch
 import torch.nn.functional as F
-
-import numpy as np
-
-from power_spherical.distributions import PowerSpherical
-
-from geoopt.tensor import ManifoldParameter
-from geoopt.optim import RiemannianSGD, RiemannianAdam
 from geoopt.manifolds import SphereExact
+from geoopt.optim import RiemannianSGD, RiemannianAdam
+from geoopt.tensor import ManifoldParameter
+from power_spherical.distributions import PowerSpherical
+from tqdm import tqdm
 
+from bench_utils import ExperimentConfig, WandbLogger
 from ledoh_torch import (
     KernelSphereDispersion,
     LloydSphereDispersion,
@@ -29,10 +25,6 @@ from ledoh_torch import (
     minimum_acos_distance as minimum_acos_distance,
     circular_variance
 )
-
-import pandas as pd
-
-from bench_utils import ExperimentConfig, WandbLogger
 
 
 def _get_optimizer(optimizer: str, lr: float) -> Callable:
@@ -64,19 +56,19 @@ def _get_init_embeddings(n: int, d: int, init: dict, device):
     #     kappa = int(init[3:])
     #     X_init = F.normalize(torch.from_numpy(vonmises_fisher(mu, kappa).rvs(n, random_state=42)), dim=-1).to(device).to(torch.float32)
     #     return X_init
-    elif init["_name"]=="powerspherical_constant":
+    elif init["_name"] == "powerspherical_constant":
         kappa = init["kappa"]
         ps_dist = PowerSpherical(
-            F.normalize(torch.full((n, d), d ** -0.5, dtype=torch.float32,device=device), dim=-1),
+            F.normalize(torch.full((n, d), d ** -0.5, dtype=torch.float32, device=device), dim=-1),
             scale=torch.tensor(kappa, dtype=torch.float32, device=device).repeat(n))
         X_init = ps_dist.rsample()
 
-    elif init["_name"]=="powerspherical_decay":
+    elif init["_name"] == "powerspherical_decay":
         init_kappa_val = init["kappa"]
         stop_decay = 1000
         kappa = torch.linspace(init_kappa_val, stop_decay, n, dtype=torch.float32, device=device)
         ps_dist = PowerSpherical(
-            F.normalize(torch.full((n, d), d ** -0.5, dtype=torch.float32,device=device), dim=-1),
+            F.normalize(torch.full((n, d), d ** -0.5, dtype=torch.float32, device=device), dim=-1),
             scale=kappa)
         X_init = ps_dist.rsample()
 
@@ -91,8 +83,9 @@ def _bench_one(
         X_init: torch.Tensor, func: Callable,
         make_opt: Callable, manifold: SphereExact,
         n_iter: int,
-        device: torch.cuda.device
-    ) -> Dict[str, List[float]]:
+        device: torch.cuda.device,
+        logger: WandbLogger = None
+) -> Dict[str, List[float]]:
     X = ManifoldParameter(X_init.clone(), manifold=manifold)
     opt = make_opt(X)
     X = X.to(device)
@@ -115,7 +108,9 @@ def _bench_one(
 
         losses.append(loss.detach().item())
         cvars.append(circular_variance(X.detach()).item())
-        minds.append(minimum_acos_distance(X.detach(),X.detach()).item())
+        minds.append(minimum_acos_distance(X.detach(), X.detach()).item())
+
+        logger.get_current_run().log({"loss": losses[-1], "cvar": cvars[-1], "mind": minds[-1], "time": time[-1]})
 
         print(f"iter {it} loss {losses[-1]} cvar {cvars[-1]} mind {minds[-1]} time {time[-1]}")
 
@@ -128,12 +123,11 @@ def main(config: ExperimentConfig):
     project_name = config.project_name
     logger = WandbLogger(config)
 
-
     for lr, n, d, n_iter in config.get_hyper_params():
         # create embeddings
         init_method = config.init_embeddings
         X_init = _get_init_embeddings(n=n, d=d, init=init_method, device=device)
-        print(n,d, X_init.shape)
+        print(n, d, X_init.shape)
 
         for model_name, params, optim_type in config.get_model():
             logger.start_run(
@@ -163,15 +157,18 @@ def main(config: ExperimentConfig):
             manifold = SphereExact()
 
             embeddings, results = _bench_one(X_init=X_init,
-                              func=loss_fn,
-                              make_opt=make_opt,
-                              manifold=manifold,
-                            n_iter=n_iter, device=device)
+                                             func=loss_fn,
+                                             make_opt=make_opt,
+                                             manifold=manifold,
+                                             n_iter=n_iter, device=device,
+                                             logger=logger)
 
-
-            logger.log(embeddings, results, finish=True)
-            param_str = json.dumps(params).replace(":", "_").replace(",", "_").replace("{", "").replace("}", "").replace(" ", "")
-            pd.DataFrame(results).to_csv(f"{model_name}_{init_method['_name']}_{lr}_{n}_{d}_{n_iter}_{optim_type}_params_{param_str}.csv")
+            logger.finish_run()
+            param_str = json.dumps(params).replace(":", "_").replace(",", "_").replace("{", "").replace("}",
+                                                                                                        "").replace(" ",
+                                                                                                                    "")
+            pd.DataFrame(results).to_csv(
+                f"{model_name}_{init_method['_name']}_{lr}_{n}_{d}_{n_iter}_{optim_type}_params_{param_str}.csv")
 
 
 if __name__ == '__main__':
@@ -185,4 +182,3 @@ if __name__ == '__main__':
     config = ExperimentConfig(args.config)
 
     main(config)
-
