@@ -19,11 +19,13 @@ from geoopt.manifolds import SphereExact
 
 from ledoh_torch import (
     KernelSphereDispersion,
-    KernelSphereSemibatchDispersion,
     LloydSphereDispersion,
     AxisAlignedBatchSphereDispersion,
     SlicedSphereDispersion,
     MMADispersion,
+    MMCSDispersion,
+    MHEDispersion,
+    KoLeoDispersion,
     minimum_acos_distance as minimum_acos_distance,
     circular_variance
 )
@@ -148,8 +150,12 @@ def main(config: ExperimentConfig):
                 loss_fn = LloydSphereDispersion(**params)
             elif model_name == "mma":
                 loss_fn = MMADispersion(**params)
-            elif model_name == "mmd-semi":
-                loss_fn = KernelSphereSemibatchDispersion(**params)
+            elif model_name == "mmcs":
+                loss_fn = MMCSDispersion(**params)
+            elif model_name == "mhe":
+                loss_fn = MHEDispersion(**params)
+            elif model_name == "koleo":
+                loss_fn = KoLeoDispersion(**params)
             else:
                 raise Exception("Incorrect model specified in configuration")
 
