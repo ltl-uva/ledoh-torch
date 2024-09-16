@@ -1,8 +1,8 @@
-from lloyd_dispersion import *
-from pairwise_dispersion import *
-from sliced_dispersion import *
-from sliced_batch import *
-from utils import *
+from ledoh_torch.lloyd_dispersion import *
+from ledoh_torch.pairwise_dispersion import *
+from ledoh_torch.sliced_dispersion import *
+from ledoh_torch.sliced_batch import *
+from ledoh_torch.utils import *
 
 __all__ = [
     "KernelSphereDispersion",
