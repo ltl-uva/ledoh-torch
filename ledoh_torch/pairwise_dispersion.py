@@ -77,7 +77,7 @@ class MHEDispersion(PairwiseDispersion):
 
 class KoLeoDispersion(PairwiseDispersion):
     def forward(self, X: Tensor) -> Tensor:
-        pdist = torch.cdist(X, X, p=2.0, eps=self.eps, keepdim=True)
+        pdist = torch.cdist(X, X, p=2.0)
         pdist = pdist.fill_diagonal_(torch.inf)
         loss = torch.log(pdist.min(dim=1).values)
         return loss.mean()
