@@ -32,7 +32,7 @@ from ledoh_torch import (
 
 import pandas as pd
 
-from bench_utils import ExperimentConfig
+from bench_utils import ExperimentConfig, WandbLogger
 
 
 def _get_optimizer(optimizer: str, lr: float) -> Callable:
@@ -125,8 +125,8 @@ def _bench_one(
 def main(config: ExperimentConfig):
     # i didnt add the mps device btw
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    #project_name = config.project_name
-    #logger = WandbLogger(config)
+    project_name = config.project_name
+    logger = WandbLogger(config)
 
 
     for lr, n, d, n_iter in config.get_hyper_params():
