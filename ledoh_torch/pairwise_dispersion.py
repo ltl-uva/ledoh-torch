@@ -81,6 +81,6 @@ class KoLeoDispersion(PairwiseDispersion):
         loss = torch.log(pdist)
         loss = loss.fill_diagonal_(torch.inf)
 
-        return loss.min(dim=1)[0].mean()
+        return -loss.min(dim=1)[0].mean()
 
 
