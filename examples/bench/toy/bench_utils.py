@@ -37,7 +37,7 @@ class ExperimentConfig():
     def get_model(self):
         """ Creates generator to iterate through all models and their parameter confighuration """
         for model_name, properties in self.models.items():
-            params = properties["params"]
+            params = properties["params"] if "params" in properties else {}
             optim = properties["optim"]
 
             # handle edge case where there are no parameters

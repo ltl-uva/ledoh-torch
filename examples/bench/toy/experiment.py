@@ -170,7 +170,8 @@ def main(config: ExperimentConfig):
 
 
             #logger.log(embeddings, results, finish=True)
-            pd.DataFrame(results).to_csv(f"{model_name}_{init_method['_name']}_{lr}_{n}_{d}_{n_iter}_{optim_type}_{json.dumps(params)}.csv")
+            param_str = json.dumps(params).replace(":", "_").replace(",", "_").replace("{", "").replace("}", "").replace(" ", "")
+            pd.DataFrame(results).to_csv(f"{model_name}_{init_method['_name']}_{lr}_{n}_{d}_{n_iter}_{optim_type}_params_{param_str}.csv")
 
 
 if __name__ == '__main__':
