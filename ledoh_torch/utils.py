@@ -3,15 +3,17 @@ import torch
 
 @torch.jit.script
 def get_acos_distance_matrix(X: torch.Tensor, Y:torch.Tensor) -> torch.Tensor:
-    return torch.acos((X @ Y.T - torch.eye(X.shape[0], Y.shape[0], device=X.device)).clamp(-1 + 1e-6, 1 - 1e-6))
+    return torch.acos((X @ Y.T).clamp(-1 + 1e-7, 1 - 1e-7))
 
 @torch.jit.script
 def minimum_acos_distance(X: torch.Tensor, Y:torch.Tensor) -> torch.Tensor:
-    return get_acos_distance_matrix(X,Y).min()
+    return get_acos_distance_matrix(X,Y).fill_diagonal_(torch.inf).min()
 
 @torch.jit.script
 def avg_acos_distance(X: torch.Tensor, Y:torch.Tensor) -> torch.Tensor:
-    return get_acos_distance_matrix(X,Y).mean()
+    distances = get_acos_distance_matrix(X, Y)
+
+    return 2*(distances-torch.tril(distances)).mean()
 
 @torch.jit.script
 def avg_acos_distance_batch(X: torch.Tensor, batch_size: int=1024) -> torch.Tensor:
@@ -24,7 +26,10 @@ def avg_acos_distance_batch(X: torch.Tensor, batch_size: int=1024) -> torch.Tens
 
 @torch.jit.script
 def median_acos_distance(X: torch.Tensor, Y:torch.Tensor) -> torch.Tensor:
-    return get_acos_distance_matrix(X,Y).median()
+    distances = get_acos_distance_matrix(X, Y)
+    distances -=torch.tril(distances)
+    distances = distances[distances>0]
+    return distances.median()
 
 @torch.jit.script
 def median_acos_distance_batch(X: torch.Tensor, batch_size: int=1024) -> torch.Tensor:
@@ -37,7 +42,7 @@ def median_acos_distance_batch(X: torch.Tensor, batch_size: int=1024) -> torch.T
 
 @torch.jit.script
 def minimum_acos_distance_row(X: torch.Tensor, Y:torch.Tensor) -> torch.Tensor:
-    return get_acos_distance_matrix(X,Y).min(dim=1).values
+    return get_acos_distance_matrix(X,Y).fill_diagonal_(torch.inf).min(dim=1).values
 
 
 @torch.jit.script
