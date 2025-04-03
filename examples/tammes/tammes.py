@@ -88,7 +88,7 @@ def add_dispersed_points_to_ax(initial_angles, mmd_angles, lloyd_angles, sliced_
     ax.set_ylim([0, 90])
 
 
-def _run(tammes_config, epochs, lrs, mmd_params, lloyd_params, sliced_params, mma_params, mhe_params, verbose):
+def _run(tammes_config, epochs, lrs, mmd_params, mmd_lapg_params, lloyd_params, sliced_params, mma_params, mhe_params, verbose):
     n, d, target = tammes_config
     print(tammes_config)
 
@@ -99,6 +99,15 @@ def _run(tammes_config, epochs, lrs, mmd_params, lloyd_params, sliced_params, mm
         epochs=epochs,
         lr=lrs["mmd"],
         loss_fn=KernelSphereDispersion(**mmd_params),
+        verbose=verbose
+    )
+    _, mmd_lapg_angles = train_tammes(
+        n=n,
+        d=d,
+        target=target,
+        epochs=epochs,
+        lr=lrs["mmd_lapg"],
+        loss_fn=KernelSphereDispersion(**mmd_lapg_params),
         verbose=verbose
     )
     _, sliced_angles = train_tammes(
@@ -153,58 +162,81 @@ def _run(tammes_config, epochs, lrs, mmd_params, lloyd_params, sliced_params, mm
 
 def main(out_file=None, verbose=False):
     epochs = 2500
-    lrs = dict(mmd=0.005, sliced=0.005, lloyd=0.005,mma=0.005, mhe=0.005, koleo=0.005)
+    lrs = dict(mmd=0.005, sliced=0.005, lloyd=0.005, mma=0.005, mhe=0.005, koleo=0.005)
 
-    n = 13
-    tammes_n13 = (13, 3, 57.1367031)
-    initial_angles_n13, mmd_angles_n13,sliced_angles_n13, lloyd_angles_n13, \
-    mma_angles_n13, mhe_angles_n13, koleo_angles_n13, = _run(
-        tammes_config=tammes_n13, epochs=epochs, lrs=lrs,
-        mmd_params=dict(gamma=20, batch_size=-1), lloyd_params=dict(n_samples=200),
-        sliced_params=dict(), mma_params=dict(batch_size=-1),
-        mhe_params=dict(batch_size=-1), verbose=verbose
-    )
+    if False:
+        n = 13
+        tammes_n13 = (13, 3, 57.1367031)
+        initial_angles_n13, mmd_angles_n13,sliced_angles_n13, lloyd_angles_n13, \
+        mma_angles_n13, mhe_angles_n13, koleo_angles_n13, = _run(
+            tammes_config=tammes_n13, epochs=epochs, lrs=lrs,
+            mmd_params=dict(kernel='gaussian', distance='euclidean',
+                            kernel_args=dict(gamma=20),
+                            batch_size=-1),
+            lloyd_params=dict(n_samples=200),
+            sliced_params=dict(), mma_params=dict(batch_size=-1),
+            mhe_params=dict(batch_size=-1), verbose=verbose
+        )
 
-    # n = 14
-    tammes_n14 = (14, 3, 55.6705700)
-    initial_angles_n14, mmd_angles_n14, sliced_angles_n14, lloyd_angles_n14, \
-        mma_angles_n14, mhe_angles_n14, koleo_angles_14= _run(
-        tammes_config=tammes_n14, epochs=epochs, lrs=lrs,
-        mmd_params=dict(gamma=20, batch_size=-1), lloyd_params=dict(n_samples=200),
-        sliced_params=dict(), mma_params=dict(batch_size=-1),
-        mhe_params=dict(batch_size=-1), verbose=verbose
-    )
+        n = 14
+        tammes_n14 = (14, 3, 55.6705700)
+        initial_angles_n14, mmd_angles_n14, sliced_angles_n14, lloyd_angles_n14, \
+            mma_angles_n14, mhe_angles_n14, koleo_angles_14= _run(
+            tammes_config=tammes_n14, epochs=epochs, lrs=lrs,
+            mmd_params=dict(kernel='gaussian', distance='euclidean',
+                            kernel_args=dict(gamma=20),
+                            batch_size=-1),
+            lloyd_params=dict(n_samples=200),
+            sliced_params=dict(), mma_params=dict(batch_size=-1),
+            mhe_params=dict(batch_size=-1), verbose=verbose
+        )
 
     n = 24
     tammes_n24 = (24, 3, 48.53529763)
-    initial_angles_n24, mmd_angles_n24, \
+    initial_angles_n24, mmd_angles_n24, mmd_lapg_angles_n24, \
     sliced_angles_n24, lloyd_angles_n24, \
     mma_angles_n24, mhe_angles_n24, koleo_angles_n24 = _run(
         tammes_config=tammes_n24, epochs=epochs, lrs=lrs,
-        mmd_params=dict(gamma=25, batch_size=-1), lloyd_params=dict(n_samples=300),
+        mmd_params=dict(kernel='gaussian', distance='euclidean',
+                        # kernel_args=dict(gamma=25),
+                        kernel_args=dict(gamma=25),
+                        batch_size=-1),
+        mmd_lapg_params=dict(kernel='laplace', distance='geodesic',
+                        # kernel_args=dict(gamma=25),
+                        kernel_args=dict(gamma=1),
+                        batch_size=-1),
+        lloyd_params=dict(n_samples=300),
         sliced_params=dict(), mma_params=dict(batch_size=-1),
         mhe_params=dict(batch_size=-1), verbose=verbose
     )
 
-    n = 128
-    tammes_n128 = (128, 3, 18.6349726)
-    initial_angles_n128, mmd_angles_n128, \
-    sliced_angles_n128, lloyd_angles_n128, \
-    mma_angles_n128, mhe_angles_n128, koleo_angles_n128 = _run(
-        tammes_config=tammes_n128, epochs=epochs, lrs=lrs,
-        mmd_params=dict(gamma=25, batch_size=-1), lloyd_params=dict(n_samples=512),
-        sliced_params=dict(), mma_params=dict(batch_size=-1),
-        mhe_params=dict(batch_size=-1), verbose=verbose
-    )
+    if False:
+        n = 128
+        tammes_n128 = (128, 3, 18.6349726)
+        initial_angles_n128, mmd_angles_n128, \
+        sliced_angles_n128, lloyd_angles_n128, \
+        mma_angles_n128, mhe_angles_n128, koleo_angles_n128 = _run(
+            tammes_config=tammes_n128, epochs=epochs, lrs=lrs,
+            mmd_params=dict(kernel='gaussian', distance='euclidean',
+                            kernel_args=dict(gamma=25),
+                            batch_size=-1),
+            lloyd_params=dict(n_samples=512),
+            sliced_params=dict(), mma_params=dict(batch_size=-1),
+            mhe_params=dict(batch_size=-1), verbose=verbose
+        )
 
-    tammes_d16_n288 = (288, 16, 75.5224878)
-    initial_angles_d16_n288, mmd_angles_d16_n288, \
-    sliced_angles_d16_n288, lloyd_angles_d16_n288, \
-    mma_angles_d16_n288, mhe_angles_d16_n288, koleo_angles_d16_n288 = _run(tammes_config=tammes_d16_n288, epochs=epochs, lrs=lrs,
-        mmd_params=dict(gamma=25, batch_size=-1), lloyd_params=dict(n_samples=512),
-        sliced_params=dict(), mma_params=dict(batch_size=-1),
-        mhe_params=dict(batch_size=-1), verbose=verbose
-    )
+        tammes_d16_n288 = (288, 16, 75.5224878)
+        initial_angles_d16_n288, mmd_angles_d16_n288, \
+        sliced_angles_d16_n288, lloyd_angles_d16_n288, \
+        mma_angles_d16_n288, mhe_angles_d16_n288, koleo_angles_d16_n288 = _run(tammes_config=tammes_d16_n288, epochs=epochs, lrs=lrs,
+            mmd_params=dict(kernel='gaussian', distance='euclidean',
+                            kernel_args=dict(gamma=25),
+                            batch_size=-1),
+            lloyd_params=dict(n_samples=512),
+            sliced_params=dict(), mma_params=dict(batch_size=-1),
+            mhe_params=dict(batch_size=-1), verbose=verbose
+        )
+
     plt.rc('axes', titlesize=16)
     plt.rc('axes', labelsize=14)
     plt.rc('ytick', labelsize=14)
@@ -213,65 +245,73 @@ def main(out_file=None, verbose=False):
 
     #fig, axes = plt.subplots(ncols=3, nrows=1, figsize=(21,5), sharex=True)
 
-    optimals = [tammes_n13[2], tammes_n14[2], tammes_n24[2],tammes_n128[2], tammes_d16_n288[2]]
-    n_points = [13, 14, 24, 128, 288]
-    dimensions = [3, 3, 3, 3, 16]
-    #optimals = [tammes_n24[2]]
-    #n_points = [24]
+    optimals = [tammes_n24[2]]
+    n_points = [24]
+    dimensions = [3]
 
-    configurations_14 = {
-        "rand": initial_angles_n14,
-        "mma": mma_angles_n14,
-        "mhe": mhe_angles_n14,
-        "koleo": koleo_angles_14,
-        "mmd": mmd_angles_n14,
-        "lloyd": lloyd_angles_n14,
-        "sliced": sliced_angles_n14,
+    # optimals = [tammes_n13[2], tammes_n14[2], tammes_n24[2],tammes_n128[2], tammes_d16_n288[2]]
+    # n_points = [13, 14, 24, 128, 288]
+    # dimensions = [3, 3, 3, 3, 16]
 
-    }
-    configurations_13 = {
-        "rand": initial_angles_n13,
-        "mma": mma_angles_n13,
-        "mhe": mhe_angles_n13,
-        "koleo": koleo_angles_n13,
-        "mmd": mmd_angles_n13,
-        "lloyd": lloyd_angles_n13,
-        "sliced": sliced_angles_n13,
-    }
+    if False:
+        configurations_14 = {
+            "rand": initial_angles_n14,
+            "mma": mma_angles_n14,
+            "mhe": mhe_angles_n14,
+            "koleo": koleo_angles_14,
+            "mmd": mmd_angles_n14,
+            "lloyd": lloyd_angles_n14,
+            "sliced": sliced_angles_n14,
+
+        }
+        configurations_13 = {
+            "rand": initial_angles_n13,
+            "mma": mma_angles_n13,
+            "mhe": mhe_angles_n13,
+            "koleo": koleo_angles_n13,
+            "mmd": mmd_angles_n13,
+            "lloyd": lloyd_angles_n13,
+            "sliced": sliced_angles_n13,
+        }
+
     configurations_24 = {
         "rand": initial_angles_n24,
         "mma": mma_angles_n24,
         "mhe": mhe_angles_n24,
         "koleo": koleo_angles_n24,
         "mmd": mmd_angles_n24,
+        "mmd_lapg": mmd_lapg_angles_n24,
         "lloyd": lloyd_angles_n24,
         "sliced": sliced_angles_n24,
-
-    }
-    configurations_128 = {
-        "rand": initial_angles_n128,
-        "mma": mma_angles_n128,
-        "mhe": mhe_angles_n128,
-        "koleo": koleo_angles_n128,
-        "mmd": mmd_angles_n128,
-        "lloyd": lloyd_angles_n128,
-        "sliced": sliced_angles_n128,
     }
 
-    configurations_16_288 = {
-        "rand": initial_angles_d16_n288,
-        "mma": mma_angles_d16_n288,
-        "mhe": mhe_angles_d16_n288,
-        "koleo": koleo_angles_d16_n288,
-        "mmd": mmd_angles_d16_n288,
-        "lloyd": lloyd_angles_d16_n288,
-        "sliced": sliced_angles_d16_n288,
+    if False:
+        configurations_128 = {
+            "rand": initial_angles_n128,
+            "mma": mma_angles_n128,
+            "mhe": mhe_angles_n128,
+            "koleo": koleo_angles_n128,
+            "mmd": mmd_angles_n128,
+            "lloyd": lloyd_angles_n128,
+            "sliced": sliced_angles_n128,
+        }
 
-    }
+        configurations_16_288 = {
+            "rand": initial_angles_d16_n288,
+            "mma": mma_angles_d16_n288,
+            "mhe": mhe_angles_d16_n288,
+            "koleo": koleo_angles_d16_n288,
+            "mmd": mmd_angles_d16_n288,
+            "lloyd": lloyd_angles_d16_n288,
+            "sliced": sliced_angles_d16_n288,
+        }
 
-    configurations = [configurations_13, configurations_14, configurations_24,configurations_128, configurations_16_288]
-    out_files = ["tammes_n13_boxplot_new.pdf", "tammes_n14_boxplot_new.pdf", "tammes_n24_boxplot_new.pdf","tammes_n128_boxplot_new.pdf","tammes_d16_n288_boxplot_new.pdf"]
-    #configurations = [configurations_24]
+    # configurations = [configurations_13, configurations_14, configurations_24,configurations_128, configurations_16_288]
+    # out_files = ["tammes_n13_boxplot_new.pdf", "tammes_n14_boxplot_new.pdf", "tammes_n24_boxplot_new.pdf","tammes_n128_boxplot_new.pdf","tammes_d16_n288_boxplot_new.pdf"]
+
+    configurations = [configurations_24]
+    out_files = ["tammes_n24_boxplot_new.pdf"]
+
     for j,c in enumerate(configurations):
         fig, axes = plt.subplots(ncols=1, nrows=1, figsize=(14, 5), sharex=True)
         axes.boxplot(c.values(), showfliers=False,

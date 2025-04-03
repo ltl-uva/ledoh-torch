@@ -1,6 +1,6 @@
 project_name: "toy_regularizer_playground"
-n: [20000]
-d: [64,128,256]
+n: [200]
+d: [64]
 lr: 0.001
 n_iter: 1000
 interval: 1
@@ -29,9 +29,53 @@ models:
   #  params:
   #    batch_size: [4472, 11314]
   #  optim: adam
-  mmd:
-    params:
-      gamma: [1]
-      batch_size: [1581, 3162] # [4472, 11314] #[7107]
+  mmd-gauss-eucl:
+    params: 
+      kernel: ['gaussian']
+      distance: ['euclidean']
+      kernel_args:  [
+        gamma: 1.0
+      ]
+      batch_size: [1581]  # [1581,3862] or  [4472, 11314] #[7107]
+    optim: adam
+
+  mmd-laplace-eucl:
+    params: 
+      kernel: ['laplace']
+      distance: ['euclidean']
+      kernel_args:  [
+        gamma: 1.0
+      ]
+      batch_size: [1581]  # [4472, 11314] #[7107]
+    optim: adam
+
+  mmd-laplace-geo:
+    params: 
+      kernel: ['laplace']
+      distance: ['geodesic']
+      kernel_args:  [
+        gamma: 1.0
+      ]
+      batch_size: [1581]  # [4472, 11314] #[7107]
+    optim: adam
+    
+  mmd-riesz-euclidean:
+    params: 
+      kernel: ['riesz']
+      distance: ['euclidean']
+      kernel_args:  [
+        s: 1.0
+      ]
+      batch_size: [1581]  # [4472, 11314] #[7107]
+    optim: adam
+
+  mmd-riesz-euclidean:
+    params: 
+      kernel: ['riesz']
+      distance: ['geodesic']
+      kernel_args:  [
+        s: 1.0
+      ]
+      batch_size: [1581]  # [4472, 11314] #[7107]
     optim: adam
 
