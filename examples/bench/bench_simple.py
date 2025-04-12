@@ -1,6 +1,6 @@
-import math
 from time import perf_counter
-from functools import partial
+import tqdm
+import json
 
 import torch
 import torch.nn.functional as F
@@ -12,14 +12,13 @@ from geoopt.manifolds import SphereExact, Sphere
 import matplotlib.pyplot as plt
 
 from ledoh_torch import minimum_acos_distance, circular_variance
+from ledoh_torch.pairwise_dispersion import KoLeoDispersion
 from ledoh_torch import (
     KernelSphereDispersion,
     LloydSphereDispersion,
-    SlicedSphereDispersion,
-    AxisAlignedSlicedSphereDispersion)
+    SlicedSphereDispersion)
 
-
-def _bench_one(X_init, func, make_opt, manifold, n_iter=3000):
+def _bench_one(X_init, func, make_opt, manifold, n_iter):
     X = ManifoldParameter(X_init.clone(), manifold=manifold)
     opt = make_opt(X)
 
@@ -29,120 +28,139 @@ def _bench_one(X_init, func, make_opt, manifold, n_iter=3000):
     time = [0.0]
 
     t0 = perf_counter()
-    for it in range(n_iter):
+    for it in tqdm.trange(n_iter):
 
         # log everything before update
-        # losses.append(loss.item())
-        cvars.append(circular_variance(X.detach()).item())
-        minds.append(minimum_acos_distance(X.detach(), X.detach()).item())
 
         # update
         tic = perf_counter()
         opt.zero_grad()
         loss = func(X)
+
+        losses.append(loss.item())
+        cvars.append(circular_variance(X.detach()).item())
+        minds.append(minimum_acos_distance(X.detach(), X.detach()).item())
+
         loss.backward()
         opt.step()
         toc = perf_counter()
         time.append(time[-1] + toc - tic)
 
+    losses.append(func(X).item())
     cvars.append(circular_variance(X.detach()).item())
     minds.append(minimum_acos_distance(X.detach(), X.detach()).item())
 
     return dict(losses=losses, cvars=cvars, minds=minds, time=time)
 
 
-def bench(n, d):
-    torch.manual_seed(42)
-    X_init = F.normalize(10 + torch.randn(n, d), dim=-1)
-
+def _get_optimizer(optimizer: str, lr: float):
     def make_opt_sgd(X):
-        # return RiemannianAdam([X], lr=0.05)
-        return RiemannianSGD([X], lr=0.1)
+        return RiemannianSGD([X], lr=lr)
 
     def make_opt_adam(X):
-        return RiemannianAdam([X], lr=0.05)
+        return RiemannianAdam([X], lr=lr)
 
-    mmd = partial(KernelSphereDispersion.forward, gamma=.1, batch_size=-1)
-    mmdmb = partial(KernelSphereDispersion.forward, gamma=.1,
-                    batch_size=math.ceil(math.sqrt(n)))
-    lloyd = partial(LloydSphereDispersion.forward,
-                    n_samples=math.ceil(math.log10(n)))
-    sliced = partial(SlicedSphereDispersion.forward, p=None, q=None)
-    axsliced = partial(AxisAlignedSlicedSphereDispersion.forward, i=None, j=None)
+    if optimizer == "adam":
+        return make_opt_adam
+    elif optimizer == "sgd":
+        return make_opt_sgd
 
-    res = dict()
+    raise ValueError("optimizer unknown")
 
-    manifold = SphereExact()
 
-    if n <= 100:
-        res["mmd-full"] = _bench_one(X_init=X_init,
-                                func=mmd,
-                                make_opt=make_opt_adam,
-                                manifold=manifold)
+REGS = {
+    'mmd': KernelSphereDispersion,
+    'sliced': SlicedSphereDispersion,
+    'lloyd': LloydSphereDispersion,
+    'koleo': KoLeoDispersion,
+}
 
-    res["mmd-mb"] = _bench_one(X_init=X_init,
-                               func=mmdmb,
-                               make_opt=make_opt_adam,
-                               manifold=manifold)
+INITS = {
+    'uniform': lambda n, d: F.normalize(torch.randn(n, d), dim=-1)
+}
 
-    res["lloyd"] = _bench_one(X_init=X_init,
-                              func=lloyd,
-                              make_opt=make_opt_adam,
-                              manifold=manifold)
+MANIFS = {
+    'exact': SphereExact,
+}
 
-    res["sliced"] = _bench_one(X_init=X_init,
-                               func=sliced,
-                               make_opt=make_opt_sgd,
-                               manifold=manifold)
 
-    res["sliced-ax"] = _bench_one(X_init=X_init,
-                                  func=axsliced,
-                                  make_opt=make_opt_sgd,
-                                  manifold=manifold)
-
-    return res
+def bench(n, d, init, reg, args, opt, lr, manif, n_iter, seed):
+    torch.manual_seed(seed)
+    X_init = INITS[init](n, d)
+    func = REGS[reg](**args)
+    manifold = MANIFS[manif]()
+    make_opt = _get_optimizer(opt, lr)
+    return _bench_one(X_init, func, make_opt, manifold, n_iter)
 
 
 def main():
 
-    d = 16
-
-    pltargs = {
-        'mmd-full': {'color': 'C0'},
-        'mmd-mb': {'color': 'C0', 'ls': ":"},
-        'lloyd': {'color': 'C2'},
-        'sliced': {'color': 'C3'},
-        'sliced-ax': {'color': 'C3', 'ls': ":"},
+    base_config = {
+        'n': 20000,
+        'd': 64,
+        'init': 'uniform',
+        'opt': 'adam',
+        'lr': 0.001,
+        'manif': 'exact',
+        'n_iter': 1000,
+        'seed': 42,
     }
 
+    deltas = [
+        {
+            'reg': 'mmd',
+            'args': {
+                'kernel': 'gaussian',
+                'distance': 'euclidean',
+                'kernel_args': {'gamma': 1.0},
+                'batch_size': 1581,
+            }
+        },
+        {
+            'reg': 'mmd',
+            'args': {
+                'kernel': 'laplace',
+                'distance': 'geodesic',
+                'kernel_args': {'gamma': 1.0},
+                'batch_size': 1581,
+            }
+        },
+        {
+            'reg': 'mmd',
+            'args': {
+                'kernel': 'laplace',
+                'distance': 'euclidean',
+                'kernel_args': {'gamma': 1.0},
+                'batch_size': 1581,
+            }
+        },
+        {
+            'reg': 'mmd',
+            'args': {
+                'kernel': 'riesz',
+                'distance': 'euclidean',
+                'kernel_args': {'s': 1.0},
+                'batch_size': 1581,
+            }
+        },
+        {
+            'reg': 'mmd',
+            'args': {
+                'kernel': 'riesz',
+                'distance': 'geodesic',
+                'kernel_args': {'s': 1.0},
+                'batch_size': 1581,
+            }
+        },
+    ]
 
-    fig, axes = plt.subplots(nrows=4, ncols=3)
-    for i, n in enumerate((100, 1000, 2000)):
+    for delta in deltas:
 
-        res = bench(n, d)
-
-        for method, scores in res.items():
-            axes[0, i].plot(scores["cvars"], label=method, **pltargs[method])
-            axes[1, i].plot(scores["minds"], label=method, **pltargs[method])
-            axes[2, i].plot(scores["time"], scores["cvars"], label=method,
-                            **pltargs[method])
-            axes[3, i].plot(scores["time"], scores["minds"], label=method,
-                            **pltargs[method])
-
-        axes[0, i].set_title(f"{n=}")
-        axes[0, i].set_xlabel("iter")
-        axes[1, i].set_xlabel("iter")
-        axes[2, i].set_xlabel("time")
-        axes[3, i].set_xlabel("time")
-
-    axes[0, 0].legend()
-
-    axes[0, 0].set_ylabel("cvar")
-    axes[1, 0].set_ylabel("min d")
-    axes[2, 0].set_ylabel("cvar")
-    axes[3, 0].set_ylabel("min d")
-
-    plt.show()
+        config = base_config | delta
+        results = bench(**config)
+        with open('results.json', 'a') as f:
+            line = json.dumps({'config': config, 'results': results})
+            print(line, file=f)
 
 
 if __name__ == '__main__':
