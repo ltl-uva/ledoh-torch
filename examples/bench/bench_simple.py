@@ -115,6 +115,9 @@ def bench(
     torch.manual_seed(seed)
     X_init = INITS[init](n, d)
 
+    if torch.cuda.is_available():
+        X_init = X_init.cuda()
+
     return _bench_one(
         X_init=X_init,
         func=REGS[reg](**args),
