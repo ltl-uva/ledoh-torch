@@ -3,6 +3,8 @@ from torch import Tensor
 import torch.nn.functional as F
 from .sphere_dispersion import SphereDispersion
 
+GEODESIC_EPS = 1e-4
+
 @torch.jit.script
 def get_batched_dot_product(X: Tensor, batch_size: int):
     if batch_size < 0:
@@ -36,6 +38,7 @@ def _k_gauss_geo(cosines: Tensor, gamma: float = 1):
 
 
 def _k_lap_geo(cosines: Tensor, gamma: float = 1):
+    cosines = torch.clip(cosines, -1 + GEODESIC_EPS, 1 - GEODESIC_EPS)
     negative_dist = -torch.acos(cosines)
     return torch.exp(gamma * negative_dist)
 
@@ -52,6 +55,7 @@ def _k_riesz_eucl(cosines: Tensor, s: float = 1):
 
 
 def _k_riesz_geo(cosines: Tensor, s: float = 1):
+    cosines = torch.clip(cosines, -1 + GEODESIC_EPS, 1 - GEODESIC_EPS)
     dist = torch.acos(cosines)
 
     if s > 0:
@@ -91,6 +95,8 @@ class KernelSphereDispersion(PairwiseDispersion):
            :return: loss value, {"sample_size": batch_size}
         """
         super().__init__(batch_size)
+        if batch_size != -1:
+            raise ValueError("batch size is deprecated; sample outside the regularizer call")
         self.kernel_args = kernel_args
         try:
             self._kernel = KERNELS[kernel, distance]
@@ -104,8 +110,11 @@ class KernelSphereDispersion(PairwiseDispersion):
         return all_cosines[*torch.triu_indices(n, n, offset=1)]
 
     def forward(self, X:Tensor) -> Tensor:
+        assert(not X.isnan().any())
         cosines = self._cosines(X)
+        assert(not cosines.isnan().any())
         kervals = self._kernel(cosines, **self.kernel_args)
+        assert(not kervals.isnan().any())
         return kervals.mean()
 
 

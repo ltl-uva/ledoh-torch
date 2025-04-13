@@ -10,13 +10,17 @@ from .sphere_dispersion import SphereDispersion
 
 class AxisAlignedBatchSphereDispersion(SphereDispersion):
     """Wrap sliced_batch to provide consistent API"""
-    def __init__(self, batch_size: int = -1):
+    def __init__(self, n_samples: int = 1, batch_size: int = -1):
         super().__init__()
-        self.batch_size = batch_size
+        self.n_samples = n_samples
+        if batch_size != -1:
+            raise ValueError("deprecated, name is misleading")
 
     def forward(self, X:Tensor):
-        batch_size = X.shape[0] if self.batch_size < 0 else self.batch_size
-        return sliced_batch(X, n_samples=batch_size)
+        # this is based on a misunderstanding i think.
+        # we should definitely not default to n samples here.
+        # batch_size = X.shape[0] if self.batch_size < 0 else self.batch_size
+        return sliced_batch(X, n_samples=self.n_samples)
 
 
 def sliced_batch(X, n_samples=5):
