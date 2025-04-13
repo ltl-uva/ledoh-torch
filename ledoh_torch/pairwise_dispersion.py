@@ -3,7 +3,7 @@ from torch import Tensor
 import torch.nn.functional as F
 from .sphere_dispersion import SphereDispersion
 
-GEODESIC_EPS = 1e-4
+ACOS_EPS = 1e-7
 
 @torch.jit.script
 def get_batched_dot_product(X: Tensor, batch_size: int):
@@ -38,7 +38,7 @@ def _k_gauss_geo(cosines: Tensor, gamma: float = 1):
 
 
 def _k_lap_geo(cosines: Tensor, gamma: float = 1):
-    cosines = torch.clip(cosines, -1 + GEODESIC_EPS, 1 - GEODESIC_EPS)
+    cosines = torch.clip(cosines, -1 + ACOS_EPS, 1 - ACOS_EPS)
     negative_dist = -torch.acos(cosines)
     return torch.exp(gamma * negative_dist)
 
@@ -55,7 +55,7 @@ def _k_riesz_eucl(cosines: Tensor, s: float = 1):
 
 
 def _k_riesz_geo(cosines: Tensor, s: float = 1):
-    cosines = torch.clip(cosines, -1 + GEODESIC_EPS, 1 - GEODESIC_EPS)
+    cosines = torch.clip(cosines, -1 + ACOS_EPS, 1 - ACOS_EPS)
     dist = torch.acos(cosines)
 
     if s > 0:
@@ -119,7 +119,7 @@ class KernelSphereDispersion(PairwiseDispersion):
 
 
 class MMADispersion(PairwiseDispersion):
-    def __init__(self, batch_size: int = -1, eps=1e-7):
+    def __init__(self, batch_size: int = -1, eps=ACOS_EPS):
         super().__init__(batch_size=batch_size, eps=eps)
 
     def forward(self, X: Tensor) -> Tensor:

@@ -17,6 +17,8 @@ def main():
         for line in f:
             data = json.loads(line)
             cfg = data['config']
+            if cfg['seed'] != 42:
+                continue
             res = data['results']
             lab = cfg_to_legend(cfg)
             # plt.plot(res['losses'], label=lab)

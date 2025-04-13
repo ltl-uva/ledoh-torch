@@ -17,6 +17,7 @@ from ledoh_torch import (
     KernelSphereDispersion,
     LloydSphereDispersion,
     KoLeoDispersion,
+    MMADispersion,
     AxisAlignedBatchSphereDispersion)
 
 def _bench_one(X_init, func, make_opt, manifold, batch_size, n_iter, seed):
@@ -80,6 +81,7 @@ REGS = {
     'mmd': KernelSphereDispersion,
     'lloyd': LloydSphereDispersion,
     'koleo': KoLeoDispersion,
+    'mma': MMADispersion,
     'sliced_axis': AxisAlignedBatchSphereDispersion
 }
 
@@ -132,22 +134,20 @@ def bench(
 def main():
 
     base_config = {
-        # 'n': 20000,
-        # 'd': 64,
-        'n': 200,
-        'd': 3,
+        'n': 20000,
+        'd': 64,
         'init': 'ps100',
+        # 'init': 'uniform',
         'opt': 'adam',
         'lr': 0.001,
         'manif': 'exact',
         'n_iter': 5000,
-        'seed': 42,
         'batch_size': None,
     }
 
     deltas = [
         {
-            'batch_size': 1581,
+            'batch_size': 512,
             'reg': 'mmd',
             'args': {
                 'kernel': 'laplace',
@@ -156,7 +156,7 @@ def main():
             }
         },
         {
-            'batch_size': 1581,
+            'batch_size': 512,
             'reg': 'mmd',
             'args': {
                 'kernel': 'gaussian',
@@ -165,7 +165,7 @@ def main():
             }
         },
         {
-            'batch_size': 1581,
+            'batch_size': 512,
             'reg': 'mmd',
             'args': {
                 'kernel': 'laplace',
@@ -174,7 +174,7 @@ def main():
             }
         },
         {
-            'batch_size': 1581,
+            'batch_size': 512,
             'reg': 'mmd',
             'args': {
                 'kernel': 'riesz',
@@ -183,7 +183,7 @@ def main():
             }
         },
         {
-            'batch_size': 1581,
+            'batch_size': 512,
             'reg': 'mmd',
             'args': {
                 'kernel': 'riesz',
@@ -192,14 +192,33 @@ def main():
             }
         },
         {
-            'batch_size': 1581,
+            'batch_size': 512,
+            'reg': 'mma',
+            'args': {}
+        },
+        {
+            'batch_size': 512,
             'reg': 'koleo',
             'args': {}
         },
         {
             'reg': 'lloyd',
+            'batch_size': 512,
+            'args': {
+                'n_samples': 512
+            }
+        },
+        {
+            'reg': 'lloyd',
             'args': {
                 'n_samples': 13
+            }
+        },
+        {
+            'reg': 'sliced_axis',
+            'batch_size': 512,
+            'args': {
+                'n_samples': 512
             }
         },
         {
@@ -219,14 +238,13 @@ def main():
     # i will take bsz=512 and n_spl = 13.
 
     for delta in deltas:
-
-        config = base_config | delta
-        results = bench(**config)
-        with open('results.json', 'a') as f:
-            line = json.dumps({'config': config, 'results': results})
-            print(line, file=f)
+        for seed in (42, 52, 62):
+            config = base_config | delta | {'seed': seed}
+            results = bench(**config)
+            with open('results.json', 'a') as f:
+                line = json.dumps({'config': config, 'results': results})
+                print(line, file=f)
 
 
 if __name__ == '__main__':
     main()
-
