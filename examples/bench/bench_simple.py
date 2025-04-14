@@ -7,20 +7,27 @@ import torch.nn.functional as F
 
 from geoopt.tensor import ManifoldParameter
 from geoopt.optim import RiemannianSGD, RiemannianAdam
-from geoopt.manifolds import SphereExact, Sphere
+from geoopt.manifolds import SphereExact, Euclidean
 from power_spherical.distributions import PowerSpherical
 
 import matplotlib.pyplot as plt
 
-from ledoh_torch import minimum_acos_distance, circular_variance
+from ledoh_torch import (
+    minimum_acos_distance,
+    circular_variance,
+    get_acos_distance_matrix
+)
 from ledoh_torch import (
     KernelSphereDispersion,
     LloydSphereDispersion,
     KoLeoDispersion,
     MMADispersion,
-    AxisAlignedBatchSphereDispersion)
+    SlicedSphereDispersion,
+    AxisAlignedBatchSphereDispersion
+)
 
-def _bench_one(X_init, func, make_opt, manifold, batch_size, n_iter, seed):
+def _bench_one(X_init, func, make_opt, manifold, batch_size, n_iter, seed,
+               return_angles=False):
     X = ManifoldParameter(X_init.clone(), manifold=manifold)
     opt = make_opt(X)
 
@@ -53,13 +60,27 @@ def _bench_one(X_init, func, make_opt, manifold, batch_size, n_iter, seed):
         loss.backward()
         opt.step()
         toc = perf_counter()
+
+        if isinstance(manifold, Euclidean):
+            with torch.no_grad():
+                X.data = F.normalize(X.data, dim=-1)
+                # X = F.normalize(X, dim=-1)
+
         time.append(time[-1] + toc - tic)
 
     losses.append(func(X).item())
     cvars.append(circular_variance(X.detach()).item())
     minds.append(minimum_acos_distance(X.detach(), X.detach()).item())
+    ret = dict(losses=losses, cvars=cvars, minds=minds, time=time)
 
-    return dict(losses=losses, cvars=cvars, minds=minds, time=time)
+    if return_angles:
+        Xd = X.detach()
+        n = Xd.shape[0]
+        angles = get_acos_distance_matrix(Xd, Xd)
+        angles = angles.fill_diagonal_(torch.inf)
+        ret['angles'] = angles.min(dim=1)[0].tolist()
+
+    return ret
 
 
 def _get_optimizer(optimizer: str, lr: float):
@@ -82,6 +103,7 @@ REGS = {
     'lloyd': LloydSphereDispersion,
     'koleo': KoLeoDispersion,
     'mma': MMADispersion,
+    'sliced': SlicedSphereDispersion,
     'sliced_axis': AxisAlignedBatchSphereDispersion
 }
 
@@ -94,6 +116,7 @@ INITS = {
 }
 
 MANIFS = {
+    'euclidean': Euclidean,
     'exact': SphereExact,
 }
 
@@ -110,6 +133,7 @@ def bench(
     n_iter,
     seed,
     batch_size,
+    return_angles=False
     ):
 
     print(reg, args)
@@ -128,7 +152,81 @@ def bench(
         batch_size=batch_size,
         n_iter=n_iter,
         seed=seed+1,  # just to be sure, use deterministic but different seed
+        return_angles=return_angles
     )
+
+def tammes() -> None:
+
+    base_config = {
+        'n': 24,
+        'd': 3,
+        'init': 'uniform',
+        'opt': 'adam',
+        'lr': 0.005,
+        # 'manif': 'exact',
+        'manif': 'euclidean',
+        'n_iter': 10000,
+        'batch_size': None,
+    }
+
+    deltas = [
+        {
+            'reg': 'mma',
+            'args': {},
+            'n_iter': 0
+        },
+        {
+            'reg': 'mmd',
+            'args': {
+                'kernel': 'laplace',
+                'distance': 'geodesic',
+                'kernel_args': {'gamma': 1.0},
+            }
+        },
+        {
+            'reg': 'mmd',
+            'args': {
+                'kernel': 'gaussian',
+                'distance': 'euclidean',
+                'kernel_args': {'gamma': 1.0},
+            }
+        },
+        {
+            'reg': 'mmd',
+            'args': {
+                'kernel': 'riesz',
+                'distance': 'euclidean',
+                'kernel_args': {'s': 1.0},
+            }
+        },
+        {
+            'reg': 'mma',
+            'args': {}
+        },
+        {
+            'reg': 'koleo',
+            'args': {}
+        },
+        {
+            'reg': 'lloyd',
+            'args': {
+                'n_samples': 300
+            }
+        },
+        {
+            'reg': 'sliced',
+            'args': {
+            }
+        },
+    ]
+
+    for delta in deltas:
+        for seed in (42,):   # 52, 62, 72, 82):
+            config = base_config | delta | {'seed': seed}
+            results = bench(**config, return_angles=True)
+            with open('results_tammes_eucl.json', 'a') as f:
+                line = json.dumps({'config': config, 'results': results})
+                print(line, file=f)
 
 
 def main():
@@ -247,4 +345,5 @@ def main():
 
 
 if __name__ == '__main__':
-    main()
+    tammes()
+    # main()
