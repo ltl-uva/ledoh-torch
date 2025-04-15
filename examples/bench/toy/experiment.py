@@ -134,7 +134,7 @@ def main(config: ExperimentConfig):
                 project_name, model_name, init_method, (lr, n, d, n_iter), params, optim_type
             )
             # prepare model
-            if model_name == "mmd":
+            if model_name.startswith("mmd"):
                 loss_fn = KernelSphereDispersion(**params)
             elif model_name == "sliced":
                 loss_fn = SlicedSphereDispersion()
