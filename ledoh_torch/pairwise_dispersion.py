@@ -107,7 +107,8 @@ class KernelSphereDispersion(PairwiseDispersion):
     def _cosines(self, X: Tensor):
         all_cosines = get_batched_dot_product(X, self.batch_size)
         n = all_cosines.shape[0]
-        return all_cosines[*torch.triu_indices(n, n, offset=1)]
+        triu_idx = torch.triu_indices(n, n, offset=1).unbind()
+        return all_cosines[triu_idx]
 
     def forward(self, X:Tensor) -> Tensor:
         assert(not X.isnan().any())
