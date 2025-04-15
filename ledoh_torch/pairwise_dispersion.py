@@ -110,12 +110,9 @@ class KernelSphereDispersion(PairwiseDispersion):
         return all_cosines[*torch.triu_indices(n, n, offset=1)]
 
     def forward(self, X:Tensor) -> Tensor:
-        assert(not X.isnan().any())
         cosines = self._cosines(X)
-        assert(not cosines.isnan().any())
         kervals = self._kernel(cosines, **self.kernel_args)
-        assert(not kervals.isnan().any())
-        return kervals.mean()
+        return 2 * kervals.mean()
 
 
 class MMADispersion(PairwiseDispersion):
