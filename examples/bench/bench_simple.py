@@ -64,7 +64,6 @@ def _bench_one(X_init, func, make_opt, manifold, batch_size, n_iter, seed,
         if isinstance(manifold, Euclidean):
             with torch.no_grad():
                 X.data = F.normalize(X.data, dim=-1)
-                # X = F.normalize(X, dim=-1)
 
         time.append(time[-1] + toc - tic)
 
@@ -163,8 +162,8 @@ def tammes() -> None:
         'init': 'uniform',
         'opt': 'adam',
         'lr': 0.005,
-        # 'manif': 'exact',
-        'manif': 'euclidean',
+        'manif': 'exact',
+        # 'manif': 'euclidean',
         'n_iter': 10000,
         'batch_size': None,
     }
@@ -224,7 +223,7 @@ def tammes() -> None:
         for seed in (42,):   # 52, 62, 72, 82):
             config = base_config | delta | {'seed': seed}
             results = bench(**config, return_angles=True)
-            with open('results_tammes_eucl.json', 'a') as f:
+            with open('results_tammes.json', 'a') as f:
                 line = json.dumps({'config': config, 'results': results})
                 print(line, file=f)
 
@@ -336,7 +335,7 @@ def main():
     # i will take bsz=512 and n_spl = 13.
 
     for delta in deltas:
-        for seed in (42, 52, 62):
+        for seed in (42, 52, 62):  #, 52, 62):
             config = base_config | delta | {'seed': seed}
             results = bench(**config)
             with open('results.json', 'a') as f:
