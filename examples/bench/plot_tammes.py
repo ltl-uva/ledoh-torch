@@ -2,6 +2,9 @@ import numpy as np
 import matplotlib.pyplot as plt
 import json
 
+EUCL = r' ($d_\mathbb{R}$)'
+GEOD = r' ($d_\mathbb{S}$)'
+
 def get_angles_all_runs(datas, cond):
 
     angles = []
@@ -16,11 +19,11 @@ def get_angles_all_runs(datas, cond):
 def main():
     filters = [
     {
-        'name': 'none\n(unif. init.)',
+        'name': 'uniform init.',
         'cond': lambda cfg: cfg['n_iter'] == 0
     },
     {
-        'name': 'MMD Laplace\n(geodesic)',
+        'name': 'MHE Laplace' + GEOD,
         'cond': lambda cfg: (cfg['reg'] == 'mmd' and
                              cfg['args']['kernel'] == 'laplace' and
                              cfg['args']['distance'] == 'geodesic')
@@ -32,7 +35,7 @@ def main():
                              # cfg['args']['distance'] == 'euclidean')
     # },
     {
-        'name': 'MMD gaussian\n(euclidean)',
+        'name': 'MHE RBF' + EUCL,
         'cond': lambda cfg: (cfg['reg'] == 'mmd' and
                              cfg['args']['kernel'] == 'gaussian' and
                              cfg['args']['distance'] == 'euclidean')
@@ -44,17 +47,17 @@ def main():
                              # cfg['args']['distance'] == 'geodesic')
     # },
     {
-        'name': 'MMD Riesz\n(euclidean)',
+        'name': 'MHE Riesz' + EUCL,
         'cond': lambda cfg: (cfg['reg'] == 'mmd' and
                              cfg['args']['kernel'] == 'riesz' and
                              cfg['args']['distance'] == 'euclidean')
     },
     {
-        'name': 'KoLeo\n(euclidean)',
+        'name': 'KoLeo' + EUCL,
         'cond': lambda cfg: cfg['reg'] == 'koleo'
     },
     {
-        'name': 'MMA\n(geodesic)',
+        'name': 'MM' + GEOD,
         'cond': lambda cfg: (cfg['reg'] == 'mma' and cfg['n_iter'] != 0)
     },
     {
@@ -92,33 +95,33 @@ def main():
 def riem_vs_eucl():
     filters = [
     {
-        'name': 'none\n(unif. init.)',
+        'name': 'uniform init.',
         'cond': lambda cfg: cfg['n_iter'] == 0
     },
     {
-        'name': 'MMD Laplace\n(geodesic)',
+        'name': 'MHE Laplace' + GEOD,
         'cond': lambda cfg: (cfg['reg'] == 'mmd' and
                              cfg['args']['kernel'] == 'laplace' and
                              cfg['args']['distance'] == 'geodesic')
     },
     {
-        'name': 'MMD gaussian\n(euclidean)',
+        'name': 'MHE RBF' + EUCL,
         'cond': lambda cfg: (cfg['reg'] == 'mmd' and
                              cfg['args']['kernel'] == 'gaussian' and
                              cfg['args']['distance'] == 'euclidean')
     },
     {
-        'name': 'MMD Riesz\n(euclidean)',
+        'name': 'MHE Riesz' + EUCL,
         'cond': lambda cfg: (cfg['reg'] == 'mmd' and
                              cfg['args']['kernel'] == 'riesz' and
                              cfg['args']['distance'] == 'euclidean')
     },
     {
-        'name': 'KoLeo\n(euclidean)',
+        'name': 'KoLeo' + EUCL,
         'cond': lambda cfg: cfg['reg'] == 'koleo'
     },
     {
-        'name': 'MMA\n(geodesic)',
+        'name': 'MM' + GEOD,
         'cond': lambda cfg: (cfg['reg'] == 'mma' and cfg['n_iter'] != 0)
     },
     {
@@ -168,6 +171,6 @@ def riem_vs_eucl():
 
 
 if __name__ == '__main__':
-    # riem_vs_eucl()
-    main()
+    riem_vs_eucl()
+    # main()
 
