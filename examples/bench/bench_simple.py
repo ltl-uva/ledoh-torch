@@ -1,3 +1,4 @@
+import os
 from time import perf_counter
 import tqdm
 import json
@@ -23,7 +24,8 @@ from ledoh_torch import (
     KoLeoDispersion,
     MMADispersion,
     SlicedSphereDispersion,
-    AxisAlignedBatchSphereDispersion
+    AxisAlignedBatchSphereDispersion,
+    SphericalSlicedWassersteinDispersion
 )
 
 def _bench_one(X_init, func, make_opt, manifold, batch_size, n_iter, seed,
@@ -84,10 +86,10 @@ def _bench_one(X_init, func, make_opt, manifold, batch_size, n_iter, seed,
 
 def _get_optimizer(optimizer: str, lr: float):
     def make_opt_sgd(X):
-        return RiemannianSGD([X], lr=lr)
+        return RiemannianSGD([X], lr=lr, stabilize=1)
 
     def make_opt_adam(X):
-        return RiemannianAdam([X], lr=lr)
+        return RiemannianAdam([X], lr=lr, stabilize=1)
 
     if optimizer == "adam":
         return make_opt_adam
@@ -103,7 +105,8 @@ REGS = {
     'koleo': KoLeoDispersion,
     'mma': MMADispersion,
     'sliced': SlicedSphereDispersion,
-    'sliced_axis': AxisAlignedBatchSphereDispersion
+    'sliced_axis': AxisAlignedBatchSphereDispersion,
+    'ssw': SphericalSlicedWassersteinDispersion
 }
 
 INITS = {
@@ -217,7 +220,19 @@ def tammes() -> None:
             'args': {
             }
         },
+        {
+            'reg': 'sliced_axis',
+            'args': {'n_samples':24,
+            }
+        },
+        {
+            'reg': 'ssw',
+            'args': {'n_projections':50},
+        }
     ]
+
+    if os.path.exists('results_tammes.json'):
+        os.remove('results_tammes.json')
 
     for delta in deltas:
         for seed in (42,):   # 52, 62, 72, 82):
@@ -324,6 +339,10 @@ def main():
                 'n_samples': 13
             }
         },
+        {
+            'reg': 'ssw',
+            'args': {'n_projections': 100},
+        }
     ]
 
     # pw complexity is n x n  x d
@@ -333,6 +352,8 @@ def main():
     # say we pick n_spl = 10 for lloyd and sliced.
     # bsz should be about sqrt(n * 10)
     # i will take bsz=512 and n_spl = 13.
+    if os.path.exists('results.json'):
+        os.remove('results.json')
 
     for delta in deltas:
         for seed in (42, 52, 62):  #, 52, 62):
@@ -344,5 +365,5 @@ def main():
 
 
 if __name__ == '__main__':
-    tammes()
-    # main()
+    #tammes()
+    main()

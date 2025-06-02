@@ -7,7 +7,7 @@ packages = ["ledoh_torch"]
 
 [project]
 name = "ledoh-torch"
-version = "0.0.6"
+version = "0.0.7"
 authors = [
   { name="E. Tokarchuk, V.Niculae, H.C. Bakker", email="evgeniya@tokarch.uk" },
 ]
