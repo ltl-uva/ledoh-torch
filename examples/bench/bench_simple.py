@@ -243,11 +243,11 @@ def tammes() -> None:
                 print(line, file=f)
 
 
-def main():
+def main(n,d):
 
     base_config = {
-        'n': 20000,
-        'd': 64,
+        'n': n,
+        'd': d,
         'init': 'ps100',
         # 'init': 'uniform',
         'opt': 'adam',
@@ -366,4 +366,15 @@ def main():
 
 if __name__ == '__main__':
     #tammes()
-    main()
+    import argparse
+    parser = argparse.ArgumentParser(description='Run benchmarks for various regularization methods.')
+    parser.add_argument('--tammes', action='store_true', help='Run benchmarks for Tammes problem.')
+    parser.add_argument('--main', action='store_true', help='Run main benchmarks.')
+    parser.add_argument('--n', type=int, default=20000, help='Number of points to generate.')
+    parser.add_argument('--d', type=int, default=64, help='Dimensionality of the points.')
+    args = parser.parse_args()
+
+    if args.tammes:
+        tammes()
+    if args.main:
+        main(args.n, args.d)
