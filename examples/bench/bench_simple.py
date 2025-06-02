@@ -320,23 +320,23 @@ def main(n,d):
                 'n_samples': 512
             }
         },
-        {
-            'reg': 'lloyd',
-            'args': {
-                'n_samples': 13
-            }
-        },
+        # {
+        #     'reg': 'lloyd',
+        #     'args': {
+        #         'n_samples': 13
+        #     }
+        # },
+        # {
+        #     'reg': 'sliced_axis',
+        #     'batch_size': 512,
+        #     'args': {
+        #         'n_samples': 512
+        #     }
+        # },
         {
             'reg': 'sliced_axis',
-            'batch_size': 512,
             'args': {
-                'n_samples': 512
-            }
-        },
-        {
-            'reg': 'sliced_axis',
-            'args': {
-                'n_samples': 13
+                'n_samples': int(round(512**2/n))
             }
         },
         {
