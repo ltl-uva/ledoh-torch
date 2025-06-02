@@ -352,14 +352,14 @@ def main(n,d):
     # say we pick n_spl = 10 for lloyd and sliced.
     # bsz should be about sqrt(n * 10)
     # i will take bsz=512 and n_spl = 13.
-    if os.path.exists('results.json'):
-        os.remove('results.json')
+    if os.path.exists(f'results_{d}_{n}.json'):
+        os.remove(f'results_{d}_{n}.json')
 
     for delta in deltas:
         for seed in (42, 52, 62):  #, 52, 62):
             config = base_config | delta | {'seed': seed}
             results = bench(**config)
-            with open('results.json', 'a') as f:
+            with open(f'results_{d}_{n}.json', 'a') as f:
                 line = json.dumps({'config': config, 'results': results})
                 print(line, file=f)
 
