@@ -357,7 +357,7 @@ def main(n,d):
 
     for delta in deltas:
         for seed in (42, 52, 62):  #, 52, 62):
-            config = base_config | delta | {'seed': seed}
+            config = {**base_config, **delta, **{'seed': seed}}
             results = bench(**config)
             with open(f'results_{d}_{n}.json', 'a') as f:
                 line = json.dumps({'config': config, 'results': results})
