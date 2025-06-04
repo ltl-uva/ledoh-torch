@@ -243,7 +243,7 @@ def tammes() -> None:
                 print(line, file=f)
 
 
-def main(n,d, lr=0.001, sn_samples=None):
+def main(n,d, lr=0.001, niter=5000, sn_samples=None):
 
     base_config = {
         'n': n,
@@ -253,88 +253,88 @@ def main(n,d, lr=0.001, sn_samples=None):
         'opt': 'adam',
         'lr':lr,
         'manif': 'exact',
-        'n_iter': 5000,
+        'n_iter': niter,
         'batch_size': None,
     }
     if sn_samples is not None:
         sn_samples = int(round(512**2/n))
 
     deltas = [
-        # {
-        #     'batch_size': 512,
-        #     'reg': 'mmd',
-        #     'args': {
-        #         'kernel': 'laplace',
-        #         'distance': 'geodesic',
-        #         'kernel_args': {'gamma': 1.0},
-        #     }
-        # },
-        # {
-        #     'batch_size': 512,
-        #     'reg': 'mmd',
-        #     'args': {
-        #         'kernel': 'gaussian',
-        #         'distance': 'euclidean',
-        #         'kernel_args': {'gamma': 1.0},
-        #     }
-        # },
-        # {
-        #     'batch_size': 512,
-        #     'reg': 'mmd',
-        #     'args': {
-        #         'kernel': 'laplace',
-        #         'distance': 'euclidean',
-        #         'kernel_args': {'gamma': 1.0},
-        #     }
-        # },
-        # {
-        #     'batch_size': 512,
-        #     'reg': 'mmd',
-        #     'args': {
-        #         'kernel': 'riesz',
-        #         'distance': 'euclidean',
-        #         'kernel_args': {'s': 1.0},
-        #     }
-        # },
-        # {
-        #     'batch_size': 512,
-        #     'reg': 'mmd',
-        #     'args': {
-        #         'kernel': 'riesz',
-        #         'distance': 'geodesic',
-        #         'kernel_args': {'s': 1.0},
-        #     }
-        # },
-        # {
-        #     'batch_size': 512,
-        #     'reg': 'mma',
-        #     'args': {}
-        # },
-        # {
-        #     'batch_size': 512,
-        #     'reg': 'koleo',
-        #     'args': {}
-        # },
-        # {
-        #     'reg': 'lloyd',
-        #     'batch_size': 512,
-        #     'args': {
-        #         'n_samples': 512
-        #     }
-        # },
-        # {
-        #     'reg': 'lloyd',
-        #     'args': {
-        #         'n_samples': 13
-        #     }
-        # },
-        # {
-        #     'reg': 'sliced_axis',
-        #     'batch_size': 512,
-        #     'args': {
-        #         'n_samples': 512
-        #     }
-        # },
+        {
+            'batch_size': 512,
+            'reg': 'mmd',
+            'args': {
+                'kernel': 'laplace',
+                'distance': 'geodesic',
+                'kernel_args': {'gamma': 1.0},
+            }
+        },
+        {
+            'batch_size': 512,
+            'reg': 'mmd',
+            'args': {
+                'kernel': 'gaussian',
+                'distance': 'euclidean',
+                'kernel_args': {'gamma': 1.0},
+            }
+        },
+        {
+            'batch_size': 512,
+            'reg': 'mmd',
+            'args': {
+                'kernel': 'laplace',
+                'distance': 'euclidean',
+                'kernel_args': {'gamma': 1.0},
+            }
+        },
+        {
+            'batch_size': 512,
+            'reg': 'mmd',
+            'args': {
+                'kernel': 'riesz',
+                'distance': 'euclidean',
+                'kernel_args': {'s': 1.0},
+            }
+        },
+        {
+            'batch_size': 512,
+            'reg': 'mmd',
+            'args': {
+                'kernel': 'riesz',
+                'distance': 'geodesic',
+                'kernel_args': {'s': 1.0},
+            }
+        },
+        {
+            'batch_size': 512,
+            'reg': 'mma',
+            'args': {}
+        },
+        {
+            'batch_size': 512,
+            'reg': 'koleo',
+            'args': {}
+        },
+        {
+            'reg': 'lloyd',
+            'batch_size': 512,
+            'args': {
+                'n_samples': 512
+            }
+        },
+        {
+            'reg': 'lloyd',
+            'args': {
+                'n_samples': 13
+            }
+        },
+        {
+            'reg': 'sliced_axis',
+            'batch_size': 512,
+            'args': {
+                'n_samples': 512
+            }
+        },
         {
             'reg': 'sliced_axis',
             'args': {
@@ -354,8 +354,8 @@ def main(n,d, lr=0.001, sn_samples=None):
     # say we pick n_spl = 10 for lloyd and sliced.
     # bsz should be about sqrt(n * 10)
     # i will take bsz=512 and n_spl = 13.
-    if os.path.exists(f'eesults_{d}_{n}_{lr}_{sn_samples}_sliced_vs_ssw.json'):
-        os.remove(f'esults_{d}_{n}_{lr}_{sn_samples}_sliced_vs_ssw.json')
+    if os.path.exists(f'eesults_{d}_{n}_{lr}_{sn_samples}_full.json'):
+        os.remove(f'esults_{d}_{n}_{lr}_{sn_samples}_full.json')
 
     for delta in deltas:
         for seed in (42, 52, 62):  #, 52, 62):
@@ -382,16 +382,17 @@ def grid_search_ssw():
 
 if __name__ == '__main__':
     #tammes()
-    # import argparse
-    # parser = argparse.ArgumentParser(description='Run benchmarks for various regularization methods.')
-    # parser.add_argument('--tammes', action='store_true', help='Run benchmarks for Tammes problem.')
-    # parser.add_argument('--main', action='store_true', help='Run main benchmarks.')
-    # parser.add_argument('--n', type=int, default=20000, help='Number of points to generate.')
-    # parser.add_argument('--d', type=int, default=64, help='Dimensionality of the points.')
-    # args = parser.parse_args()
-    #
-    # if args.tammes:
-    #     tammes()
-    # if args.main:
-    #     main(args.n, args.d)
-    grid_search_ssw()
+    import argparse
+    parser = argparse.ArgumentParser(description='Run benchmarks for various regularization methods.')
+    parser.add_argument('--tammes', action='store_true', help='Run benchmarks for Tammes problem.')
+    parser.add_argument('--main', action='store_true', help='Run main benchmarks.')
+    parser.add_argument('--n', type=int, default=20000, help='Number of points to generate.')
+    parser.add_argument('--d', type=int, default=64, help='Dimensionality of the points.')
+    parser.add_argument('--iters', type=int, default=5000, help='Dimensionality of the points.')
+    args = parser.parse_args()
+
+    if args.tammes:
+        tammes()
+    if args.main:
+        main(args.n, args.d, lr=0.001, niter=args.iters)
+    #grid_search_ssw()
