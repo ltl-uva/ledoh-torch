@@ -256,7 +256,7 @@ def main(n,d, lr=0.001, niter=5000, sn_samples=None):
         'n_iter': niter,
         'batch_size': None,
     }
-    if sn_samples is not None:
+    if sn_samples is None:
         sn_samples = int(round(512**2/n))
 
     deltas = [
@@ -361,7 +361,7 @@ def main(n,d, lr=0.001, niter=5000, sn_samples=None):
         for seed in (42, 52, 62):  #, 52, 62):
             config = {**base_config, **delta, **{'seed': seed}}
             results = bench(**config)
-            with open(f'results_{d}_{n}_{lr}_{sn_samples}_sliced_vs_ssw.json', 'a') as f:
+            with open(f'results_{d}_{n}_{lr}_{sn_samples}_full.json', 'a') as f:
                 line = json.dumps({'config': config, 'results': results})
                 print(line, file=f)
 
