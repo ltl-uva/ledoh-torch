@@ -243,7 +243,7 @@ def tammes() -> None:
                 print(line, file=f)
 
 
-def main(n,d):
+def main(n,d, lr=0.001, sn_samples=None):
 
     base_config = {
         'n': n,
@@ -251,75 +251,77 @@ def main(n,d):
         'init': 'ps100',
         # 'init': 'uniform',
         'opt': 'adam',
-        'lr': 0.001,
+        'lr':lr,
         'manif': 'exact',
         'n_iter': 5000,
         'batch_size': None,
     }
+    if sn_samples is not None:
+        sn_samples = int(round(512**2/n))
 
     deltas = [
-        {
-            'batch_size': 512,
-            'reg': 'mmd',
-            'args': {
-                'kernel': 'laplace',
-                'distance': 'geodesic',
-                'kernel_args': {'gamma': 1.0},
-            }
-        },
-        {
-            'batch_size': 512,
-            'reg': 'mmd',
-            'args': {
-                'kernel': 'gaussian',
-                'distance': 'euclidean',
-                'kernel_args': {'gamma': 1.0},
-            }
-        },
-        {
-            'batch_size': 512,
-            'reg': 'mmd',
-            'args': {
-                'kernel': 'laplace',
-                'distance': 'euclidean',
-                'kernel_args': {'gamma': 1.0},
-            }
-        },
-        {
-            'batch_size': 512,
-            'reg': 'mmd',
-            'args': {
-                'kernel': 'riesz',
-                'distance': 'euclidean',
-                'kernel_args': {'s': 1.0},
-            }
-        },
-        {
-            'batch_size': 512,
-            'reg': 'mmd',
-            'args': {
-                'kernel': 'riesz',
-                'distance': 'geodesic',
-                'kernel_args': {'s': 1.0},
-            }
-        },
-        {
-            'batch_size': 512,
-            'reg': 'mma',
-            'args': {}
-        },
-        {
-            'batch_size': 512,
-            'reg': 'koleo',
-            'args': {}
-        },
-        {
-            'reg': 'lloyd',
-            'batch_size': 512,
-            'args': {
-                'n_samples': 512
-            }
-        },
+        # {
+        #     'batch_size': 512,
+        #     'reg': 'mmd',
+        #     'args': {
+        #         'kernel': 'laplace',
+        #         'distance': 'geodesic',
+        #         'kernel_args': {'gamma': 1.0},
+        #     }
+        # },
+        # {
+        #     'batch_size': 512,
+        #     'reg': 'mmd',
+        #     'args': {
+        #         'kernel': 'gaussian',
+        #         'distance': 'euclidean',
+        #         'kernel_args': {'gamma': 1.0},
+        #     }
+        # },
+        # {
+        #     'batch_size': 512,
+        #     'reg': 'mmd',
+        #     'args': {
+        #         'kernel': 'laplace',
+        #         'distance': 'euclidean',
+        #         'kernel_args': {'gamma': 1.0},
+        #     }
+        # },
+        # {
+        #     'batch_size': 512,
+        #     'reg': 'mmd',
+        #     'args': {
+        #         'kernel': 'riesz',
+        #         'distance': 'euclidean',
+        #         'kernel_args': {'s': 1.0},
+        #     }
+        # },
+        # {
+        #     'batch_size': 512,
+        #     'reg': 'mmd',
+        #     'args': {
+        #         'kernel': 'riesz',
+        #         'distance': 'geodesic',
+        #         'kernel_args': {'s': 1.0},
+        #     }
+        # },
+        # {
+        #     'batch_size': 512,
+        #     'reg': 'mma',
+        #     'args': {}
+        # },
+        # {
+        #     'batch_size': 512,
+        #     'reg': 'koleo',
+        #     'args': {}
+        # },
+        # {
+        #     'reg': 'lloyd',
+        #     'batch_size': 512,
+        #     'args': {
+        #         'n_samples': 512
+        #     }
+        # },
         # {
         #     'reg': 'lloyd',
         #     'args': {
@@ -336,12 +338,12 @@ def main(n,d):
         {
             'reg': 'sliced_axis',
             'args': {
-                'n_samples': int(round(512**2/n))
+                'n_samples': sn_samples
             }
         },
         {
             'reg': 'ssw',
-            'args': {'n_projections': 100},
+            'args': {'n_projections': sn_samples},
         }
     ]
 
@@ -352,16 +354,30 @@ def main(n,d):
     # say we pick n_spl = 10 for lloyd and sliced.
     # bsz should be about sqrt(n * 10)
     # i will take bsz=512 and n_spl = 13.
-    if os.path.exists(f'results_{d}_{n}.json'):
-        os.remove(f'results_{d}_{n}.json')
+    if os.path.exists(f'eesults_{d}_{n}_{lr}_{sn_samples}_sliced_vs_ssw.json'):
+        os.remove(f'esults_{d}_{n}_{lr}_{sn_samples}_sliced_vs_ssw.json')
 
     for delta in deltas:
         for seed in (42, 52, 62):  #, 52, 62):
             config = {**base_config, **delta, **{'seed': seed}}
             results = bench(**config)
-            with open(f'results_{d}_{n}.json', 'a') as f:
+            with open(f'results_{d}_{n}_{lr}_{sn_samples}_sliced_vs_ssw.json', 'a') as f:
                 line = json.dumps({'config': config, 'results': results})
                 print(line, file=f)
+
+
+def grid_search_ssw():
+    ns = [1000]
+    ds = [64,512,1024]
+    lrs = [0.0001, 0.001, 0.01, 0.1]
+    nsamples = [1]
+
+    for n in ns:
+        for d in ds:
+            for lr in lrs:
+                for n_samples in nsamples:
+                    print(f'Running with n={n}, d={d}, lr={lr}, n_samples={n_samples}')
+                    main(n, d, lr=lr, sn_samples=n_samples)
 
 
 if __name__ == '__main__':
