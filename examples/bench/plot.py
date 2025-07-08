@@ -1,7 +1,12 @@
 import numpy as np
 from scipy.stats import sem
 import matplotlib.pyplot as plt
+from matplotlib.ticker import FormatStrFormatter
 import json
+
+
+EUCL = r' ($d_\mathbb{R}$)'
+GEOD = r' ($d_\mathbb{S}$)'
 
 
 def cfg_to_legend(cfg):
@@ -121,47 +126,47 @@ def make_figure():
 
     filters = [
     {
-        'name': 'MMD (Laplace, geodesic)',
+        'name': 'MHE Laplace' + GEOD,
         'args': {'color': 'C0', 'ls': ':', 'marker': 'v', 'markevery': 500},
         'cond': lambda cfg: (cfg['reg'] == 'mmd' and
                              cfg['args']['kernel'] == 'laplace' and
                              cfg['args']['distance'] == 'geodesic')
     },
     {
-        'name': 'MMD (Laplace, euclidean)',
+        'name': 'MHE Laplace' + EUCL,
         'args': {'color': 'C0', 'marker': 'v', 'markevery': 500},
         'cond': lambda cfg: (cfg['reg'] == 'mmd' and
                              cfg['args']['kernel'] == 'laplace' and
                              cfg['args']['distance'] == 'euclidean')
     },
     {
-        'name': 'MMD (gaussian, euclidean)',
+        'name': 'MHE RBF' + EUCL,
         'args': {'color': 'C1', 'lw': 2},
         'cond': lambda cfg: (cfg['reg'] == 'mmd' and
                              cfg['args']['kernel'] == 'gaussian' and
                              cfg['args']['distance'] == 'euclidean')
     },
     {
-        'name': 'MMD (Riesz, geodesic)',
+        'name': 'MHE Riesz' + GEOD,
         'args': {'color': 'C2', 'ls': ":"},
         'cond': lambda cfg: (cfg['reg'] == 'mmd' and
                              cfg['args']['kernel'] == 'riesz' and
                              cfg['args']['distance'] == 'geodesic')
     },
     {
-        'name': 'MMD (Riesz, euclidean)',
+        'name': 'MHE Riesz' + EUCL,
         'args': {'color': 'C2'},
         'cond': lambda cfg: (cfg['reg'] == 'mmd' and
                              cfg['args']['kernel'] == 'riesz' and
                              cfg['args']['distance'] == 'euclidean')
     },
     {
-        'name': 'KoLeo (euclidean)',
+        'name': 'KoLeo' + EUCL,
         'args': {'color': 'C3', 'marker': 'o', 'markevery': 500},
         'cond': lambda cfg: cfg['reg'] == 'koleo'
     },
     {
-        'name': 'MMA (geodesic)',
+        'name': 'MM' + GEOD,
         'args': {'color': 'C4', 'ls': '--'}, #, 'marker': 's', 'markevery': 120},
         'cond': lambda cfg: cfg['reg'] == 'mma'
     },
@@ -189,7 +194,8 @@ def make_figure():
     for init in ('ps100', 'unif'):
         for key in ('minds', 'cvars'):
 
-            plt.figure(figsize=(6,5), constrained_layout=True)
+            plt.figure(figsize=(5,4), constrained_layout=True)
+            # plt.figure(figsize=(6,5), constrained_layout=True)
             fn = f'results_{init}.json'
             with open(fn) as f:
                 datas = [json.loads(line) for line in f]
@@ -203,10 +209,12 @@ def make_figure():
                 plt.fill_between(ix, mean-se, mean+se,
                                  color=filt['args']['color'], alpha=.1)
 
-            if key == 'cvars':
-                plt.ylabel("Spherical variance")
-            elif key == 'minds':
-                plt.ylabel("Minimum geodesic distance")
+
+            if init == 'ps100':
+                if key == 'cvars':
+                    plt.ylabel("Spherical variance")
+                elif key == 'minds':
+                    plt.ylabel("Minimum geodesic distance")
 
             if key == 'cvars':
                 if init == 'ps100':
@@ -215,11 +223,15 @@ def make_figure():
                 else:
                     plt.title(r"Uniform init")
 
+            if key == 'minds':
+                plt.xlabel('Number of gradient steps')
+
+            plt.gca().yaxis.set_major_formatter(FormatStrFormatter('%.2f'))
             imgfn = f"toy-{init}-{key}.pdf"
             plt.savefig(imgfn)
 
 
 if __name__ == '__main__':
-    timing()
-    # make_figure()
+    # timing()
+    make_figure()
 
