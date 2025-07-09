@@ -239,7 +239,7 @@ def tammes() -> None:
             config = base_config | delta | {'seed': seed}
             results = bench(**config, return_angles=True)
             with open('results_tammes.json', 'a') as f:
-                line = json.dumps({'config': config, 'results': results})
+                line = json.dumps({'config': config, 'results': resxlts})
                 print(line, file=f)
 
 
@@ -328,13 +328,13 @@ def main(n,d, lr=0.001, niter=5000, sn_samples=None):
                 'n_samples': 13
             }
         },
-        {
-            'reg': 'sliced_axis',
-            'batch_size': 512,
-            'args': {
-                'n_samples': 512
-            }
-        },
+        # {
+        #     'reg': 'sliced_axis',
+        #     'batch_size': 512,
+        #     'args': {
+        #         'n_samples': 512
+        #     }
+        # },
         {
             'reg': 'sliced_axis',
             'args': {
@@ -344,6 +344,10 @@ def main(n,d, lr=0.001, niter=5000, sn_samples=None):
         {
             'reg': 'ssw',
             'args': {'n_projections': sn_samples},
+        },
+        {
+            'reg': 'ssw-1',
+            'args': {'n_projections': 1},
         }
     ]
 
@@ -354,8 +358,8 @@ def main(n,d, lr=0.001, niter=5000, sn_samples=None):
     # say we pick n_spl = 10 for lloyd and sliced.
     # bsz should be about sqrt(n * 10)
     # i will take bsz=512 and n_spl = 13.
-    if os.path.exists(f'eesults_{d}_{n}_{lr}_{sn_samples}_full.json'):
-        os.remove(f'esults_{d}_{n}_{lr}_{sn_samples}_full.json')
+    if os.path.exists(f'results_{d}_{n}_{lr}_{sn_samples}_full.json'):
+        os.remove(f'results_{d}_{n}_{lr}_{sn_samples}_full.json')
 
     for delta in deltas:
         for seed in (42, 52, 62):  #, 52, 62):
