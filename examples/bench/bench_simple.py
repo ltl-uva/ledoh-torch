@@ -248,8 +248,8 @@ def main(n,d, lr=0.001, niter=5000, sn_samples=None):
     base_config = {
         'n': n,
         'd': d,
-        'init': 'ps100',
-        # 'init': 'uniform',
+        #'init': 'ps100',
+        'init': 'uniform',
         'opt': 'adam',
         'lr':lr,
         'manif': 'exact',
@@ -346,7 +346,7 @@ def main(n,d, lr=0.001, niter=5000, sn_samples=None):
             'args': {'n_projections': sn_samples},
         },
         {
-            'reg': 'ssw-1',
+            'reg': 'ssw',
             'args': {'n_projections': 1},
         }
     ]
@@ -358,14 +358,14 @@ def main(n,d, lr=0.001, niter=5000, sn_samples=None):
     # say we pick n_spl = 10 for lloyd and sliced.
     # bsz should be about sqrt(n * 10)
     # i will take bsz=512 and n_spl = 13.
-    if os.path.exists(f'results_{d}_{n}_{lr}_{sn_samples}_full.json'):
-        os.remove(f'results_{d}_{n}_{lr}_{sn_samples}_full.json')
+    if os.path.exists(f'results_{base_config["init"]}_{d}_{n}.json'):
+        os.remove(f'results_{base_config["init"]}_{d}_{n}.json')
 
     for delta in deltas:
         for seed in (42, 52, 62):  #, 52, 62):
             config = {**base_config, **delta, **{'seed': seed}}
             results = bench(**config)
-            with open(f'results_{d}_{n}_{lr}_{sn_samples}_full.json', 'a') as f:
+            with open(f'results_{base_config["init"]}_{d}_{n}.json', 'a') as f:
                 line = json.dumps({'config': config, 'results': results})
                 print(line, file=f)
 
