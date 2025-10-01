@@ -59,11 +59,13 @@ def circular_variance(X: torch.Tensor) -> torch.Tensor:
     return 1 - torch.norm(torch.mean(X, dim=0))
 
 def init_great_circle(d: int, dtype=None, device: str = None) -> Tuple[torch.Tensor, torch.Tensor]:
+    #linalg.qr is not supported in float16, use float32 and convert if needed
     PQ = torch.randn(d, 2,
-                     dtype=dtype,
+                     dtype=torch.float32,
                      device=device)
 
     PQ, R = torch.linalg.qr(PQ)
     PQ *= R.diagonal().sign()
     p, q = PQ[:, 0], PQ[:, 1]
-    return p, q
+
+    return p.to(dtype), q.to(dtype)
